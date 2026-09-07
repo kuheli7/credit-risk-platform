@@ -21,7 +21,7 @@ from app.utils.ui import (
 )
 
 st.set_page_config(
-    page_title="EDA & Business Insights | NeoStats", 
+    page_title="EDA & Business Insights | CreditLens", 
     page_icon=str(FAVICON_PATH) if FAVICON_PATH.exists() else None, 
     layout="wide"
 )

@@ -1,9 +1,28 @@
 /**
- * Chart.js Helpers for NeoStats Enterprise Analytics
+ * Chart.js Helpers for CreditLens Enterprise Analytics
  * Dark navy canvas styling, transparent backgrounds, smooth animations
  */
 
 const chartRegistry = {};
+
+function ensureChartReady(callback) {
+  if (typeof Chart !== 'undefined') {
+    callback();
+    return;
+  }
+  let attempts = 0;
+  const interval = setInterval(() => {
+    attempts++;
+    if (typeof Chart !== 'undefined') {
+      clearInterval(interval);
+      callback();
+    } else if (attempts > 80) {
+      clearInterval(interval);
+      console.warn('CreditLens: Chart.js library timed out while loading');
+    }
+  }, 40);
+}
+window.ensureChartReady = ensureChartReady;
 
 function destroyChart(canvasId) {
   if (chartRegistry[canvasId]) {
@@ -42,6 +61,10 @@ const COMMON_CHART_DEFAULTS = {
 };
 
 function renderBarChart(canvasId, labels, data, colors, labelName = 'Default Rate (%)') {
+  if (typeof Chart === 'undefined') {
+    ensureChartReady(() => renderBarChart(canvasId, labels, data, colors, labelName));
+    return;
+  }
   destroyChart(canvasId);
   const ctx = document.getElementById(canvasId);
   if (!ctx) return;
@@ -75,6 +98,10 @@ function renderBarChart(canvasId, labels, data, colors, labelName = 'Default Rat
 }
 
 function renderHorizontalBarChart(canvasId, labels, data, colors, labelName = 'Default Rate (%)') {
+  if (typeof Chart === 'undefined') {
+    ensureChartReady(() => renderHorizontalBarChart(canvasId, labels, data, colors, labelName));
+    return;
+  }
   destroyChart(canvasId);
   const ctx = document.getElementById(canvasId);
   if (!ctx) return;
@@ -109,6 +136,10 @@ function renderHorizontalBarChart(canvasId, labels, data, colors, labelName = 'D
 }
 
 function renderLineChart(canvasId, labels, data, borderColor = '#3C7A26', labelName = 'Default Rate (%)') {
+  if (typeof Chart === 'undefined') {
+    ensureChartReady(() => renderLineChart(canvasId, labels, data, borderColor, labelName));
+    return;
+  }
   destroyChart(canvasId);
   const ctx = document.getElementById(canvasId);
   if (!ctx) return;
@@ -146,6 +177,10 @@ function renderLineChart(canvasId, labels, data, borderColor = '#3C7A26', labelN
 }
 
 function renderDonutGauge(canvasId, probabilityPct, riskBand) {
+  if (typeof Chart === 'undefined') {
+    ensureChartReady(() => renderDonutGauge(canvasId, probabilityPct, riskBand));
+    return;
+  }
   destroyChart(canvasId);
   const ctx = document.getElementById(canvasId);
   if (!ctx) return;

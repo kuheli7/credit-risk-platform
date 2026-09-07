@@ -1,13 +1,13 @@
 /**
- * NeoStats Unified Chat Store & Controller
- * Powers both the Floating Agent Neo widget and the main Talk to Data page (?page=talk).
+ * CreditLens Unified Chat Store & Controller
+ * Powers both the Floating CreditLens AI widget and the main Talk to Data page (?page=talk).
  * Ensures a single shared conversation state, bidirectional synchronization,
  * suggestion chips, session persistence, and full history preservation across views.
  */
 
 (function () {
-  const STORAGE_KEY = 'neostats_conversation_history_v1';
-  const SESSION_ID_KEY = 'neostats_chat_session_id';
+  const STORAGE_KEY = 'creditlens_conversation_history_v1';
+  const SESSION_ID_KEY = 'creditlens_chat_session_id';
 
   // Canonical suggested questions shared across both surfaces
   const SHARED_SUGGESTIONS = [
@@ -278,9 +278,9 @@
         <div class="talk-msg-bot">
           <div class="talk-msg-bot-head">
             <div class="talk-msg-bot-agent">
-              <div class="talk-msg-bot-avatar">N</div>
+              <div class="talk-msg-bot-avatar">C</div>
               <div>
-                <div class="talk-msg-bot-name">NeoStats Portfolio Analyst</div>
+                <div class="talk-msg-bot-name">CreditLens Portfolio Analyst</div>
                 <div style="font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--green-dark);">Connected to Home Credit Portfolio DB (307k records)</div>
               </div>
             </div>
@@ -320,9 +320,9 @@
               <div class="talk-msg-bot">
                 <div class="talk-msg-bot-head">
                   <div class="talk-msg-bot-agent">
-                    <div class="talk-msg-bot-avatar">N</div>
+                    <div class="talk-msg-bot-avatar">C</div>
                     <div>
-                      <div class="talk-msg-bot-name">NeoStats Portfolio Analyst</div>
+                      <div class="talk-msg-bot-name">CreditLens Portfolio Analyst</div>
                       <div style="font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--green-dark);">Connected to Home Credit Portfolio DB</div>
                     </div>
                   </div>
@@ -475,7 +475,7 @@
       const welcomeGreetingHtml = `
         <div class="f-msg bot">
           <div class="bubble">
-            Hello! I am <b>Agent Neo</b>, your AI Credit Risk Data Analyst. Ask me anything about portfolio default rates across cohorts, bureau debt volumes, or applicant demographics.
+            Hello! I am <b>CreditLens AI</b>, your Credit Risk Data Analyst. Ask me anything about portfolio default rates across cohorts, bureau debt volumes, or applicant demographics.
             ${pillsHtml}
           </div>
           <div class="f-msg-time">Just now</div>
@@ -504,7 +504,7 @@
                 <div class="bubble">
                   <div style="display:flex; align-items:center; gap:8px; color:var(--ink-dim, #64748b);">
                     <span class="spinner" style="width:14px; height:14px; border:2px solid #5fa83d; border-top-color:transparent; border-radius:50%; animation:spin 0.8s linear infinite;"></span>
-                    <span style="font-size:12.5px;">Agent Neo is querying portfolio records via Groq LLM...</span>
+                    <span style="font-size:12.5px;">CreditLens AI is querying portfolio records via Groq LLM...</span>
                   </div>
                 </div>
                 <span class="f-msg-time">${escapeHtml(msg.timestamp)}</span>

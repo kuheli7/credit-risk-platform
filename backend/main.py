@@ -1,4 +1,4 @@
-"""NeoStats AI Credit Risk Intelligence Platform - FastAPI Backend."""
+"""CreditLens AI Credit Risk Intelligence Platform - FastAPI Backend."""
 
 import sys
 from pathlib import Path
@@ -19,7 +19,7 @@ from backend.api.routes.chat import router as chat_router
 from src.utils.logger import logger
 
 app = FastAPI(
-    title="NeoStats Credit Risk Intelligence API",
+    title="CreditLens Credit Risk Intelligence API",
     description="Enterprise Credit Scoring, Explainable AI (SHAP), Decision Rules, and NL-to-SQL Analytics API.",
     version="1.0.0"
 )
@@ -40,11 +40,22 @@ app.include_router(risk_router)
 app.include_router(rules_router)
 app.include_router(chat_router)
 
+@app.get("/favicon.ico", include_in_schema=False)
+def favicon():
+    fav_ico = PROJECT_ROOT / "frontend" / "assets" / "favicon.ico"
+    headers = {"Cache-Control": "no-cache, no-store, must-revalidate", "Pragma": "no-cache"}
+    if fav_ico.exists():
+        return FileResponse(str(fav_ico), media_type="image/x-icon", headers=headers)
+    fav_png = PROJECT_ROOT / "frontend" / "assets" / "favicon.png"
+    if fav_png.exists():
+        return FileResponse(str(fav_png), media_type="image/png", headers=headers)
+    return FileResponse(str(PROJECT_ROOT / "frontend" / "assets" / "logo.svg"), media_type="image/svg+xml", headers=headers)
+
 @app.get("/api/health")
 def health_check():
     return {
         "status": "online",
-        "platform": "NeoStats Credit Risk Intelligence",
+        "platform": "CreditLens Credit Risk Intelligence",
         "version": "1.0.0",
         "engine": "LightGBM + TreeSHAP + Groq Qwen"
     }
@@ -70,4 +81,4 @@ if FRONTEND_DIR.exists():
 
 @app.on_event("startup")
 async def startup_event():
-    logger.info("NeoStats Credit Risk Platform FastAPI Server started.")
+    logger.info("CreditLens Credit Risk Platform FastAPI Server started.")

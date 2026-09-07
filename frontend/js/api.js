@@ -1,5 +1,5 @@
 /**
- * NeoStats Platform API Client
+ * CreditLens Platform API Client
  * Clean fetch wrapper for FastAPI backend endpoints
  */
 

@@ -191,8 +191,8 @@ def render_sidebar_header():
     with col2:
         st.markdown("""
         <div style="line-height: 1.15; padding-top: 2px;">
-            <div style="font-size: 1.15rem; font-weight: 800; letter-spacing: 0.04em;">NEOSTATS</div>
-            <div style="font-size: 0.75rem; font-weight: 500; color: #3b82f6;">Risk Intelligence</div>
+            <div style="font-size: 1.15rem; font-weight: 800; letter-spacing: 0.04em; color: #5FA83D;">CREDITLENS</div>
+            <div style="font-size: 0.75rem; font-weight: 500; color: #3C7A26;">Risk Intelligence</div>
         </div>
         """, unsafe_allow_html=True)
     
@@ -203,7 +203,7 @@ def render_sidebar_footer():
     st.sidebar.markdown("<hr style='margin: 20px 0 10px 0; border: none; border-top: 1px solid var(--border-glass);'>", unsafe_allow_html=True)
     st.sidebar.markdown("""
     <div style="font-size: 0.75rem; color: var(--text-muted); line-height: 1.5;">
-        <span style="font-weight: 600;">NeoStats Engine</span><br>
+        <span style="font-weight: 600;">CreditLens Engine</span><br>
         LightGBM GBDT • SHAP XAI • Groq Qwen
     </div>
     """, unsafe_allow_html=True)

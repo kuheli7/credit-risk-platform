@@ -5,11 +5,89 @@
  */
 
 let riskPresets = [];
+var riskRadarChartInstance = null;
+var riskShapChartInstance = null;
+window.riskRadarChartInstance = null;
+window.riskShapChartInstance = null;
+
+function escapeHtml(str) {
+  if (str == null) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+window.escapeHtml = escapeHtml;
+
+/**
+ * Populates or refreshes live model confidence signals in the underwriting verdict card
+ */
+function updateLiveModelSignals() {
+  const ext2Input = document.getElementById('input-ext2');
+  const creditInput = document.getElementById('input-credit');
+  const incomeInput = document.getElementById('input-income');
+  const refusedInput = document.getElementById('input-refused-rate');
+
+  const ext2Val = ext2Input ? parseFloat(ext2Input.value) : 0.22;
+  const creditVal = creditInput ? parseFloat(creditInput.value) : 1083825;
+  const incomeVal = incomeInput ? parseFloat(incomeInput.value) : 150000;
+  const refusedVal = refusedInput ? parseFloat(refusedInput.value) : 0;
+
+  const sigExt2 = document.getElementById('res-sig-ext2');
+  if (sigExt2) {
+    const ext2Status = ext2Val < 0.25 ? '⚠ CRITICAL (<0.25)' : ext2Val < 0.40 ? '↓ BELOW SAFE (<0.40)' : '✓ WITHIN RANGE';
+    const ext2Color = ext2Val < 0.25 ? '#C1543F' : ext2Val < 0.40 ? '#D99A3C' : '#3C7A26';
+    sigExt2.textContent = `${ext2Val.toFixed(2)} — ${ext2Status}`;
+    sigExt2.style.color = ext2Color;
+  }
+
+  const sigLeverage = document.getElementById('res-sig-leverage');
+  if (sigLeverage && incomeVal > 0) {
+    const leverage = (creditVal / incomeVal).toFixed(2);
+    const levStatus = leverage > 6 ? '⚠ SEVERE (>6.0×)' : leverage > 4 ? '↑ ELEVATED (>4.0×)' : '✓ ACCEPTABLE';
+    const levColor = leverage > 6 ? '#C1543F' : leverage > 4 ? '#D99A3C' : '#3C7A26';
+    sigLeverage.textContent = `${leverage}× income — ${levStatus}`;
+    sigLeverage.style.color = levColor;
+  }
+
+  const sigRefusal = document.getElementById('res-sig-refusal');
+  if (sigRefusal) {
+    const refPct = Math.round(refusedVal * 100);
+    const refStatus = refusedVal >= 0.40 ? '⚠ HIGH RISK FLAG' : refusedVal >= 0.20 ? '↑ MONITOR' : '✓ CLEAN HISTORY';
+    const refColor = refusedVal >= 0.40 ? '#C1543F' : refusedVal >= 0.20 ? '#D99A3C' : '#3C7A26';
+    sigRefusal.textContent = `${refPct}% refusal rate — ${refStatus}`;
+    sigRefusal.style.color = refColor;
+  }
+}
+window.updateLiveModelSignals = updateLiveModelSignals;
+
+function safeEnsureChart(callback) {
+  if (typeof Chart !== 'undefined') {
+    callback();
+  } else if (window.ensureChartReady) {
+    window.ensureChartReady(callback);
+  } else {
+    let attempts = 0;
+    const t = setInterval(() => {
+      attempts++;
+      if (typeof Chart !== 'undefined') {
+        clearInterval(t);
+        callback();
+      } else if (attempts > 80) {
+        clearInterval(t);
+      }
+    }, 40);
+  }
+}
 
 /**
  * Preloads Risk Radar and Local SHAP charts based on the pre-filled default prediction in the HTML
  */
 function preloadDefaultPredictionCharts() {
+  updateLiveModelSignals();
+
   const defaultRadar = {
     categories: ['Bureau Rating', 'Debt Capacity', 'Leverage Health', 'Employment Stability', 'Credit History'],
     applicant: [24, 38, 26, 42, 22],
@@ -29,13 +107,31 @@ function preloadDefaultPredictionCharts() {
     resultsContainer.style.display = 'block';
   }
 
-  setTimeout(() => {
+  safeEnsureChart(() => {
     renderRiskRadar(defaultRadar, 'HIGH');
     renderLocalShapChart(defaultReducing, defaultIncreasing);
-  }, 60);
+    setTimeout(() => {
+      if (window.riskRadarChartInstance) window.riskRadarChartInstance.resize();
+      if (window.riskShapChartInstance) window.riskShapChartInstance.resize();
+    }, 80);
+  });
+}
+window.preloadDefaultPredictionCharts = preloadDefaultPredictionCharts;
+
+// Ensure charts are preloaded on DOM load and when script evaluates
+safeEnsureChart(preloadDefaultPredictionCharts);
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    safeEnsureChart(preloadDefaultPredictionCharts);
+  });
+} else {
+  safeEnsureChart(preloadDefaultPredictionCharts);
 }
 
 async function initRiskPage() {
+  const scoringPage = document.getElementById('page-scoring');
+  if (scoringPage) scoringPage.style.display = 'block';
+
   // Preload charts matching the pre-populated verdict on page
   preloadDefaultPredictionCharts();
 
@@ -43,6 +139,7 @@ async function initRiskPage() {
     riskPresets = await api.getRiskPresets();
     const presetSelect = document.getElementById('risk-preset-select');
     if (presetSelect && presetSelect.options.length <= 1) {
+      presetSelect.innerHTML = '';
       riskPresets.forEach(p => {
         const opt = document.createElement('option');
         opt.value = p.id;
@@ -50,52 +147,78 @@ async function initRiskPage() {
         presetSelect.appendChild(opt);
       });
 
-      // Default load first preset without triggering second evaluation
-      if (riskPresets.length > 0) {
-        presetSelect.value = riskPresets[0].id;
-        loadRiskPreset(riskPresets[0].id, false);
+      // Default load high_risk_defaulter (matches the initial HTML form inputs and verdict)
+      const defaultPreset = riskPresets.find(p => p.id === 'high_risk_defaulter') || riskPresets[0];
+      if (defaultPreset) {
+        presetSelect.value = defaultPreset.id;
+        loadRiskPreset(defaultPreset.id, false);
       }
     }
+
+    // Automatically perform live evaluation on page load so real graphs, gauge & signals load immediately
+    await handleRiskEvaluation(null, false);
   } catch (err) {
-    console.error('Failed to load risk presets:', err);
+    console.error('Failed to initialize risk page:', err);
+    preloadDefaultPredictionCharts();
   }
 }
 
-// Ensure charts are preloaded on DOM load
-setTimeout(preloadDefaultPredictionCharts, 120);
+window.addEventListener('load', () => {
+  const scoringPage = document.getElementById('page-scoring');
+  if (scoringPage && scoringPage.style.display !== 'none') {
+    initRiskPage();
+  }
+});
 
 function loadRiskPreset(presetId, autoEval = true) {
   const p = riskPresets.find(x => x.id === presetId);
   if (!p) return;
 
   const d = p.data;
-  document.getElementById('input-income').value = d.AMT_INCOME_TOTAL;
-  document.getElementById('input-credit').value = d.AMT_CREDIT;
-  document.getElementById('input-annuity').value = d.AMT_ANNUITY;
-  document.getElementById('input-goods-price').value = d.AMT_GOODS_PRICE;
-  document.getElementById('input-contract-type').value = d.NAME_CONTRACT_TYPE;
-  document.getElementById('input-gender').value = d.CODE_GENDER;
-  document.getElementById('input-income-type').value = d.NAME_INCOME_TYPE;
-  document.getElementById('input-education').value = d.NAME_EDUCATION_TYPE;
-  document.getElementById('input-occupation').value = d.OCCUPATION_TYPE;
+  const setVal = (id, val) => {
+    const el = document.getElementById(id);
+    if (el && val !== undefined && val !== null) el.value = val;
+  };
+  const setText = (id, val) => {
+    const el = document.getElementById(id);
+    if (el && val !== undefined && val !== null) el.textContent = val;
+  };
+
+  setVal('input-income', d.AMT_INCOME_TOTAL);
+  setVal('input-credit', d.AMT_CREDIT);
+  setVal('input-annuity', d.AMT_ANNUITY);
+  setVal('input-goods-price', d.AMT_GOODS_PRICE);
+  setVal('input-contract-type', d.NAME_CONTRACT_TYPE);
+  setVal('input-gender', d.CODE_GENDER);
+  setVal('input-income-type', d.NAME_INCOME_TYPE);
+  setVal('input-education', d.NAME_EDUCATION_TYPE);
+  setVal('input-occupation', d.OCCUPATION_TYPE);
 
   // Sliders
-  document.getElementById('input-age').value = d.AGE;
-  document.getElementById('val-age').textContent = `${d.AGE} yrs`;
+  setVal('input-age', d.AGE);
+  setText('val-age', `${d.AGE} yrs`);
 
-  document.getElementById('input-employed').value = d.YEARS_EMPLOYED;
-  document.getElementById('val-employed').textContent = `${d.YEARS_EMPLOYED} yrs`;
+  setVal('input-employed', d.YEARS_EMPLOYED);
+  setText('val-employed', `${d.YEARS_EMPLOYED} yrs`);
 
-  document.getElementById('input-ext2').value = d.EXT_SOURCE_2;
-  document.getElementById('val-ext2').textContent = d.EXT_SOURCE_2.toFixed(2);
+  if (d.EXT_SOURCE_2 !== undefined) {
+    setVal('input-ext2', d.EXT_SOURCE_2);
+    setText('val-ext2', Number(d.EXT_SOURCE_2).toFixed(2));
+  }
 
-  document.getElementById('input-ext3').value = d.EXT_SOURCE_3;
-  document.getElementById('val-ext3').textContent = d.EXT_SOURCE_3.toFixed(2);
+  if (d.EXT_SOURCE_3 !== undefined) {
+    setVal('input-ext3', d.EXT_SOURCE_3);
+    setText('val-ext3', Number(d.EXT_SOURCE_3).toFixed(2));
+  }
 
-  document.getElementById('input-active-loans').value = d.BUREAU_ACTIVE_LOANS;
+  setVal('input-active-loans', d.BUREAU_ACTIVE_LOANS);
 
-  document.getElementById('input-refused-rate').value = d.PREV_APP_REFUSED_RATE;
-  document.getElementById('val-refused-rate').textContent = `${Math.round(d.PREV_APP_REFUSED_RATE * 100)}%`;
+  if (d.PREV_APP_REFUSED_RATE !== undefined) {
+    setVal('input-refused-rate', d.PREV_APP_REFUSED_RATE);
+    setText('val-refused-rate', `${Math.round(d.PREV_APP_REFUSED_RATE * 100)}%`);
+  }
+
+  updateLiveModelSignals();
 
   const statusEl = document.getElementById('risk-lookup-status');
   if (statusEl) {
@@ -128,31 +251,49 @@ async function lookupAndLoadApplicant(skId) {
     }
 
     const d = res.data;
-    document.getElementById('input-income').value = d.AMT_INCOME_TOTAL;
-    document.getElementById('input-credit').value = d.AMT_CREDIT;
-    document.getElementById('input-annuity').value = d.AMT_ANNUITY;
-    document.getElementById('input-goods-price').value = d.AMT_GOODS_PRICE;
-    document.getElementById('input-contract-type').value = d.NAME_CONTRACT_TYPE;
-    document.getElementById('input-gender').value = d.CODE_GENDER;
-    document.getElementById('input-income-type').value = d.NAME_INCOME_TYPE;
-    document.getElementById('input-education').value = d.NAME_EDUCATION_TYPE;
-    document.getElementById('input-occupation').value = d.OCCUPATION_TYPE;
+    const setVal = (id, val) => {
+      const el = document.getElementById(id);
+      if (el && val !== undefined && val !== null) el.value = val;
+    };
+    const setText = (id, val) => {
+      const el = document.getElementById(id);
+      if (el && val !== undefined && val !== null) el.textContent = val;
+    };
 
-    document.getElementById('input-age').value = d.AGE;
-    document.getElementById('val-age').textContent = `${d.AGE} yrs`;
+    setVal('input-income', d.AMT_INCOME_TOTAL);
+    setVal('input-credit', d.AMT_CREDIT);
+    setVal('input-annuity', d.AMT_ANNUITY);
+    setVal('input-goods-price', d.AMT_GOODS_PRICE);
+    setVal('input-contract-type', d.NAME_CONTRACT_TYPE);
+    setVal('input-gender', d.CODE_GENDER);
+    setVal('input-income-type', d.NAME_INCOME_TYPE);
+    setVal('input-education', d.NAME_EDUCATION_TYPE);
+    setVal('input-occupation', d.OCCUPATION_TYPE);
 
-    document.getElementById('input-employed').value = d.YEARS_EMPLOYED;
-    document.getElementById('val-employed').textContent = `${d.YEARS_EMPLOYED} yrs`;
+    setVal('input-age', d.AGE);
+    setText('val-age', `${d.AGE} yrs`);
 
-    document.getElementById('input-ext2').value = d.EXT_SOURCE_2;
-    document.getElementById('val-ext2').textContent = d.EXT_SOURCE_2.toFixed(2);
+    setVal('input-employed', d.YEARS_EMPLOYED);
+    setText('val-employed', `${d.YEARS_EMPLOYED} yrs`);
 
-    document.getElementById('input-ext3').value = d.EXT_SOURCE_3;
-    document.getElementById('val-ext3').textContent = d.EXT_SOURCE_3.toFixed(2);
+    if (d.EXT_SOURCE_2 !== undefined) {
+      setVal('input-ext2', d.EXT_SOURCE_2);
+      setText('val-ext2', Number(d.EXT_SOURCE_2).toFixed(2));
+    }
 
-    document.getElementById('input-active-loans').value = d.BUREAU_ACTIVE_LOANS;
-    document.getElementById('input-refused-rate').value = d.PREV_APP_REFUSED_RATE;
-    document.getElementById('val-refused-rate').textContent = `${Math.round(d.PREV_APP_REFUSED_RATE * 100)}%`;
+    if (d.EXT_SOURCE_3 !== undefined) {
+      setVal('input-ext3', d.EXT_SOURCE_3);
+      setText('val-ext3', Number(d.EXT_SOURCE_3).toFixed(2));
+    }
+
+    setVal('input-active-loans', d.BUREAU_ACTIVE_LOANS);
+
+    if (d.PREV_APP_REFUSED_RATE !== undefined) {
+      setVal('input-refused-rate', d.PREV_APP_REFUSED_RATE);
+      setText('val-refused-rate', `${Math.round(d.PREV_APP_REFUSED_RATE * 100)}%`);
+    }
+
+    updateLiveModelSignals();
 
     if (statusEl) {
       const isDef = res.actual_target === 1;
@@ -167,33 +308,44 @@ async function lookupAndLoadApplicant(skId) {
 }
 window.lookupAndLoadApplicant = lookupAndLoadApplicant;
 
-async function handleRiskEvaluation(e) {
+async function handleRiskEvaluation(e, shouldScroll = true) {
   if (e) e.preventDefault();
 
   const evalBtn = document.getElementById('btn-evaluate-risk');
   const resultsContainer = document.getElementById('risk-results-container');
   const errorAlert = document.getElementById('risk-error-alert');
 
-  errorAlert.style.display = 'none';
-  evalBtn.disabled = true;
-  evalBtn.innerHTML = '<span class="spinner"></span> Evaluating Risk & SHAP...';
+  if (errorAlert) errorAlert.style.display = 'none';
+  if (evalBtn && e) {
+    evalBtn.disabled = true;
+    evalBtn.innerHTML = '<span class="spinner"></span> Evaluating Risk & SHAP...';
+  }
+
+  const getVal = (id, fallback = '') => {
+    const el = document.getElementById(id);
+    return el ? el.value : fallback;
+  };
+  const getFloat = (id, fallback = 0) => {
+    const el = document.getElementById(id);
+    return el ? (parseFloat(el.value) || fallback) : fallback;
+  };
 
   const payload = {
-    AMT_INCOME_TOTAL: parseFloat(document.getElementById('input-income').value) || 150000,
-    AMT_CREDIT: parseFloat(document.getElementById('input-credit').value) || 500000,
-    AMT_ANNUITY: parseFloat(document.getElementById('input-annuity').value) || 25000,
-    AMT_GOODS_PRICE: parseFloat(document.getElementById('input-goods-price').value) || 500000,
-    NAME_CONTRACT_TYPE: document.getElementById('input-contract-type').value,
-    CODE_GENDER: document.getElementById('input-gender').value,
-    NAME_INCOME_TYPE: document.getElementById('input-income-type').value,
-    NAME_EDUCATION_TYPE: document.getElementById('input-education').value,
-    OCCUPATION_TYPE: document.getElementById('input-occupation').value,
-    AGE: parseFloat(document.getElementById('input-age').value),
-    YEARS_EMPLOYED: parseFloat(document.getElementById('input-employed').value),
-    EXT_SOURCE_2: parseFloat(document.getElementById('input-ext2').value),
-    EXT_SOURCE_3: parseFloat(document.getElementById('input-ext3').value),
-    BUREAU_ACTIVE_LOANS: parseFloat(document.getElementById('input-active-loans').value),
-    PREV_APP_REFUSED_RATE: parseFloat(document.getElementById('input-refused-rate').value)
+    AMT_INCOME_TOTAL: getFloat('input-income', 150000),
+    AMT_CREDIT: getFloat('input-credit', 500000),
+    AMT_ANNUITY: getFloat('input-annuity', 25000),
+    AMT_GOODS_PRICE: getFloat('input-goods-price', 500000),
+    NAME_CONTRACT_TYPE: getVal('input-contract-type', 'Cash loans'),
+    CODE_GENDER: getVal('input-gender', 'M'),
+    NAME_INCOME_TYPE: getVal('input-income-type', 'Working'),
+    NAME_EDUCATION_TYPE: getVal('input-education', 'Secondary / secondary special'),
+    OCCUPATION_TYPE: getVal('input-occupation', 'Laborers'),
+    AGE: getFloat('input-age', 44),
+    YEARS_EMPLOYED: getFloat('input-employed', 3.5),
+    EXT_SOURCE_2: getFloat('input-ext2', 0.22),
+    EXT_SOURCE_3: getFloat('input-ext3', 0.28),
+    BUREAU_ACTIVE_LOANS: getFloat('input-active-loans', 4),
+    PREV_APP_REFUSED_RATE: getFloat('input-refused-rate', 0.50)
   };
 
   try {
@@ -298,13 +450,15 @@ async function handleRiskEvaluation(e) {
       renderLocalShapChart(res.risk_reducing_factors, res.risk_increasing_factors);
     }, 60);
 
-    // Smoothly scroll down to prediction section
-    setTimeout(() => {
-      const predSection = document.getElementById('risk-results-container');
-      if (predSection) {
-        predSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    }, 120);
+    // Smoothly scroll down to prediction section only if explicitly requested (e.g. button click)
+    if (shouldScroll) {
+      setTimeout(() => {
+        const predSection = document.getElementById('risk-results-container');
+        if (predSection) {
+          predSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 120);
+    }
 
   } catch (err) {
     console.error('Risk evaluation failed:', err);
@@ -313,10 +467,13 @@ async function handleRiskEvaluation(e) {
       errorAlert.style.display = 'block';
     }
   } finally {
-    evalBtn.disabled = false;
-    evalBtn.textContent = 'Evaluate Credit Risk & View Prediction ↓';
+    if (evalBtn) {
+      evalBtn.disabled = false;
+      evalBtn.textContent = 'Evaluate Credit Risk & View Prediction ↓';
+    }
   }
 }
+window.handleRiskEvaluation = handleRiskEvaluation;
 
 function renderShapFactors(reducing, increasing) {
   const reducingContainer = document.getElementById('res-factors-reducing') || document.getElementById('shap-reducing-container');
@@ -361,18 +518,31 @@ function renderShapFactors(reducing, increasing) {
   }
 }
 
-let riskRadarChartInstance = null;
-let riskShapChartInstance = null;
-
 /**
  * Renders the multi-dimensional risk radar chart (Applicant vs Prime Benchmark)
  */
 function renderRiskRadar(profile, riskBand) {
   const canvas = document.getElementById('chart-risk-radar');
-  if (!canvas || !window.Chart || !profile) return;
+  if (!canvas || !profile) return;
+  if (typeof Chart === 'undefined') {
+    if (typeof ensureChartReady === 'function') {
+      ensureChartReady(() => renderRiskRadar(profile, riskBand));
+    }
+    return;
+  }
 
-  if (riskRadarChartInstance) {
-    riskRadarChartInstance.destroy();
+  // If container is hidden in DOM, defer until visible
+  if (canvas.offsetParent === null) {
+    setTimeout(() => renderRiskRadar(profile, riskBand), 60);
+    return;
+  }
+
+  if (typeof Chart !== 'undefined' && Chart.getChart(canvas)) {
+    try { Chart.getChart(canvas).destroy(); } catch (e) {}
+  }
+  if (window.riskRadarChartInstance) {
+    try { window.riskRadarChartInstance.destroy(); } catch (e) {}
+    window.riskRadarChartInstance = null;
     riskRadarChartInstance = null;
   }
 
@@ -387,7 +557,7 @@ function renderRiskRadar(profile, riskBand) {
   }
 
   const ctx = canvas.getContext('2d');
-  riskRadarChartInstance = new Chart(ctx, {
+  window.riskRadarChartInstance = riskRadarChartInstance = new Chart(ctx, {
     type: 'radar',
     data: {
       labels: profile.categories || ['Bureau Rating', 'Debt Capacity', 'Leverage Health', 'Employment Stability', 'Credit History'],
@@ -472,10 +642,26 @@ function renderRiskRadar(profile, riskBand) {
  */
 function renderLocalShapChart(reducing, increasing) {
   const canvas = document.getElementById('chart-risk-shap-bars');
-  if (!canvas || !window.Chart) return;
+  if (!canvas) return;
+  if (typeof Chart === 'undefined') {
+    if (typeof ensureChartReady === 'function') {
+      ensureChartReady(() => renderLocalShapChart(reducing, increasing));
+    }
+    return;
+  }
 
-  if (riskShapChartInstance) {
-    riskShapChartInstance.destroy();
+  // If container is hidden in DOM, defer until visible
+  if (canvas.offsetParent === null) {
+    setTimeout(() => renderLocalShapChart(reducing, increasing), 60);
+    return;
+  }
+
+  if (typeof Chart !== 'undefined' && Chart.getChart(canvas)) {
+    try { Chart.getChart(canvas).destroy(); } catch (e) {}
+  }
+  if (window.riskShapChartInstance) {
+    try { window.riskShapChartInstance.destroy(); } catch (e) {}
+    window.riskShapChartInstance = null;
     riskShapChartInstance = null;
   }
 
@@ -507,7 +693,7 @@ function renderLocalShapChart(reducing, increasing) {
   const bgColors = items.map(d => d.type === 'reducing' ? '#3C7A26' : '#B85C3E');
 
   const ctx = canvas.getContext('2d');
-  riskShapChartInstance = new Chart(ctx, {
+  window.riskShapChartInstance = riskShapChartInstance = new Chart(ctx, {
     type: 'bar',
     data: {
       labels: labels,
@@ -573,3 +759,29 @@ function renderLocalShapChart(reducing, increasing) {
     }
   });
 }
+
+/**
+ * Resizes charts when the risk scoring tab becomes visible
+ */
+function resizeRiskCharts() {
+  const radarCanvas = document.getElementById('chart-risk-radar');
+  if (radarCanvas && radarCanvas.clientWidth > 0) {
+    if (riskRadarChartInstance) {
+      try { riskRadarChartInstance.resize(); } catch (e) {}
+    } else if (typeof preloadDefaultPredictionCharts === 'function') {
+      preloadDefaultPredictionCharts();
+    }
+  }
+  const shapCanvas = document.getElementById('chart-risk-shap-bars');
+  if (shapCanvas && shapCanvas.clientWidth > 0) {
+    if (riskShapChartInstance) {
+      try { riskShapChartInstance.resize(); } catch (e) {}
+    } else if (typeof preloadDefaultPredictionCharts === 'function') {
+      preloadDefaultPredictionCharts();
+    }
+  }
+}
+window.resizeRiskCharts = resizeRiskCharts;
+window.renderRiskRadar = renderRiskRadar;
+window.renderLocalShapChart = renderLocalShapChart;
+

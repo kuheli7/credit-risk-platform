@@ -1,4 +1,4 @@
-# NeoStats AI-Powered Credit Risk Intelligence Platform
+# CreditLens AI-Powered Credit Risk Intelligence Platform
 
 > **Enterprise-grade credit scoring, explainable underwriting (SHAP), automated policy rule derivation, and natural-language portfolio analysis powered by FastAPI, LightGBM, and Groq LLM.**
 
@@ -16,7 +16,7 @@
 
 ## 1. Executive Summary & Architecture
 
-The **NeoStats Credit Risk Intelligence Platform** is a full-stack, enterprise-grade risk assessment and analytics system built for bank underwriting teams, risk committees, and credit analysts. Designed upon the Home Credit Default Risk benchmark, it replaces prototype-style interfaces with a decoupled, high-performance architecture:
+The **CreditLens Credit Risk Intelligence Platform** is a full-stack, enterprise-grade risk assessment and analytics system built for bank underwriting teams, risk committees, and credit analysts. Designed upon the Home Credit Default Risk benchmark, it replaces prototype-style interfaces with a decoupled, high-performance architecture:
 
 - **Decoupled Architecture:** High-speed **FastAPI** REST backend serving an enterprise **HTML5 / CSS3 / Vanilla JavaScript** Single Page Application with dynamic **Chart.js** telemetry.
 - **Early Default Detection:** LightGBM Gradient Boosted Decision Tree optimized for severe class imbalance (~8% default rate) using cost-sensitive gradient weighting (`scale_pos_weight = 11.5`) and PR-AUC optimization.
@@ -305,7 +305,7 @@ The UI exposes the generated SQL, result table, and executive takeaway for succe
 ## 8. Enterprise Frontend Design System
 
 The presentation layer was engineered from first principles using modern, lightweight web standards:
-- **Color Palette:** Deep charcoal/navy background (`#080c14` / `#0d131f` / `#131d2f`), NeoStats emerald accent (`#10b981`), electric cobalt (`#3b82f6`), and semantic risk colors (green for low risk, amber for medium risk, crimson for high risk).
+- **Color Palette:** Deep charcoal/navy background (`#080c14` / `#0d131f` / `#131d2f`), CreditLens emerald accent (`#5fa83d` / `#3c7a26`), and semantic risk colors (green for low risk, amber for medium risk, crimson for high risk).
 - **Zero Emojis:** Replaced all informal emojis with high-resolution Lucide-style SVG vector icons and structured typography badges.
 - **Zero Inline Code Bleed:** Eliminated unintended script injection artifacts from the UI.
 - **Dynamic Charting:** Integrated Chart.js v4 with custom dark mode tooltips, smooth bezier curves, and gridline styling.

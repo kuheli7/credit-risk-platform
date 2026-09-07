@@ -23,7 +23,7 @@ from app.utils.ui import (
 )
 
 st.set_page_config(
-    page_title="Risk Scoring & SHAP | NeoStats", 
+    page_title="Risk Scoring & SHAP | CreditLens", 
     page_icon=str(FAVICON_PATH) if FAVICON_PATH.exists() else None, 
     layout="wide"
 )

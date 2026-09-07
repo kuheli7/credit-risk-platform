@@ -20,7 +20,7 @@ from app.utils.ui import (
 )
 
 st.set_page_config(
-    page_title="Credit Decision Rules | NeoStats", 
+    page_title="Credit Decision Rules | CreditLens", 
     page_icon=str(FAVICON_PATH) if FAVICON_PATH.exists() else None, 
     layout="wide"
 )

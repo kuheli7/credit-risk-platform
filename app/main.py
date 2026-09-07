@@ -1,4 +1,4 @@
-"""NeoStats AI Credit Risk Intelligence Platform - Main Application."""
+"""CreditLens AI Credit Risk Intelligence Platform - Main Application."""
 
 import streamlit as st
 from pathlib import Path
@@ -18,7 +18,7 @@ from app.utils.ui import (
 )
 
 st.set_page_config(
-    page_title="NeoStats | Credit Risk Intelligence Platform",
+    page_title="CreditLens | Credit Risk Intelligence Platform",
     page_icon=str(FAVICON_PATH) if FAVICON_PATH.exists() else None,
     layout="wide",
     initial_sidebar_state="expanded",

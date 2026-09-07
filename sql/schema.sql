@@ -1,4 +1,4 @@
--- SQLite Schema for NeoStats Credit Risk Intelligence Platform
+-- SQLite Schema for CreditLens Credit Risk Intelligence Platform
 
 -- Applications Table (Core applicant demographic, financial and credit parameters)
 CREATE TABLE IF NOT EXISTS applications (

@@ -2,13 +2,23 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>NeoStats — Credit Risk Intelligence</title>
+<title>CreditLens — Credit Risk Intelligence</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/svg+xml" href="/assets/logo.svg?v=creditlens_c5">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png?v=creditlens_c5">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png?v=creditlens_c5">
+<link rel="shortcut icon" href="/favicon.ico?v=creditlens_c5">
+<link rel="apple-touch-icon" href="/assets/favicon.png?v=creditlens_c5">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<!-- Chart.js CDN for lightweight, high-performance browser charts -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<!-- Chart.js local script with CDN fallback for immediate zero-latency chart rendering -->
+<script src="/js/chart.umd.min.js"></script>
+<script>
+  if (typeof Chart === 'undefined') {
+    document.write('<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"><\/script>');
+  }
+</script>
 <style>
   :root {
     --bg: #F4F6F3;
@@ -85,11 +95,20 @@
     text-decoration: none;
   }
 
-  .hero-brand .mark {
-    width: 34px; height: 34px; background: var(--green);
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Space Grotesk', sans-serif; font-size: 16px; color: var(--navy); font-weight: 700;
+  .brand-logo-img {
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+    display: block;
     flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(74, 222, 128, 0.25);
+  }
+
+  .hero-brand .brand-logo-img {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    box-shadow: 0 3px 12px rgba(74, 222, 128, 0.35);
   }
 
   .hero-brand .name {
@@ -1106,9 +1125,9 @@
 <div id="hero-view">
   <header class="hero-topbar">
     <div class="hero-brand">
-      <div class="mark">N</div>
+      <img src="/assets/logo.svg?v=creditlens_c5" alt="CreditLens Logo" class="brand-logo-img">
       <div>
-        <div class="name">Neostats</div>
+        <div class="name">CreditLens</div>
         <div class="sub">CREDIT RISK PLATFORM</div>
       </div>
     </div>
@@ -1212,9 +1231,9 @@
   <aside class="side">
     <div>
       <div class="brand" id="sidebar-brand-btn" title="Return to Hero Landing">
-        <div class="mark">N</div>
+        <img src="/assets/logo.svg?v=creditlens_c5" alt="CreditLens Logo" class="brand-logo-img">
         <div>
-          <div class="name">Neostats</div>
+          <div class="name">CreditLens</div>
           <div class="sub">RISK INTELLIGENCE</div>
         </div>
       </div>
@@ -1388,7 +1407,7 @@
         </div>
       </div>
 
-      <!-- 6 Strategic Empirical Drivers (NeoStats Assignment Requirement) -->
+      <!-- 6 Strategic Empirical Drivers (CreditLens Core Requirement) -->
       <div class="section-head" style="margin-top: 48px;">
         <div>
           <h2>Empirical Risk Drivers (6 Assignment Dimensions)</h2>
@@ -1873,7 +1892,7 @@
     <!-- ============ PAGE 5: TALK TO DATA ============ -->
     <div class="page" id="page-talk" style="display:none;">
       <div class="topline">
-        <div class="crumb">NEOSTATS AI ANALYST</div>
+        <div class="crumb">CREDITLENS AI ANALYST</div>
         <div class="status">
           <div class="pill"><span class="dot"></span>POWERED BY GROQ LLAMA 3.3 · SQLITE LIVE</div>
         </div>
@@ -1906,9 +1925,9 @@
           <div class="talk-msg-bot">
             <div class="talk-msg-bot-head">
               <div class="talk-msg-bot-agent">
-                <div class="talk-msg-bot-avatar">N</div>
+                <div class="talk-msg-bot-avatar">C</div>
                 <div>
-                  <div class="talk-msg-bot-name">NeoStats Portfolio Analyst</div>
+                  <div class="talk-msg-bot-name">CreditLens Portfolio Analyst</div>
                   <div style="font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--green-dark);">Connected to Home Credit Portfolio DB (307k records)</div>
                 </div>
               </div>
@@ -1950,15 +1969,15 @@
 </div>
 
 <!-- ==========================================================================
-     3. FLOATING AI ASSISTANT ("AGENT NEO")
+     3. FLOATING AI ASSISTANT ("CREDITLENS AI")
      ========================================================================== -->
-<div id="floating-chat-trigger" title="Chat with Agent Neo">
+<div id="floating-chat-trigger" title="Chat with CreditLens AI">
   <div class="chat-trigger-bubble" id="chat-trigger-bubble">
-    <span>Chat with Agent Neo</span>
+    <span>Chat with CreditLens AI</span>
     <span style="cursor: pointer; opacity: 0.6;" onclick="event.stopPropagation(); document.getElementById('chat-trigger-bubble').style.display='none';">&times;</span>
   </div>
   <div class="chat-trigger-btn">
-    <img src="/assets/agent-neo.svg" alt="Agent Neo">
+    <img src="/assets/agent-neo.svg" alt="CreditLens AI">
     <span class="chat-trigger-online-dot"></span>
   </div>
 </div>
@@ -1966,9 +1985,9 @@
 <div id="floating-chat-modal" class="closed">
   <div class="floating-chat-header">
     <div class="floating-chat-agent">
-      <img src="/assets/agent-neo.svg" alt="Agent Neo">
+      <img src="/assets/agent-neo.svg" alt="CreditLens AI">
       <div>
-        <div class="name">Agent Neo</div>
+        <div class="name">CreditLens AI</div>
         <div class="status">Online · Credit Risk Analyst</div>
       </div>
     </div>
@@ -1985,7 +2004,7 @@
   <div class="floating-chat-body" id="f-chat-body">
     <div class="f-msg bot">
       <div class="bubble">
-        Hello! I am <b>Agent Neo</b>, your AI Credit Risk Data Analyst. Ask me anything about portfolio default rates across cohorts, bureau debt volumes, or applicant demographics.
+        Hello! I am <b>CreditLens AI</b>, your Credit Risk Data Analyst. Ask me anything about portfolio default rates across cohorts, bureau debt volumes, or applicant demographics.
       </div>
       <div class="f-msg-time">Just now</div>
     </div>
@@ -1998,15 +2017,15 @@
   </div>
 </div>
 
-<!-- Application Logic Scripts -->
-<script src="/js/api.js"></script>
-<script src="/js/charts.js"></script>
-<script src="/js/pages/overview.js"></script>
-<script src="/js/pages/eda.js"></script>
-<script src="/js/pages/risk.js"></script>
-<script src="/js/pages/rules.js"></script>
-<script src="/js/pages/chat.js"></script>
-<script src="/js/app.js"></script>
+<!-- Application Logic Scripts (Versioned to bust browser caches) -->
+<script src="/js/api.js?v=creditlens_c6"></script>
+<script src="/js/charts.js?v=creditlens_c6"></script>
+<script src="/js/pages/overview.js?v=creditlens_c6"></script>
+<script src="/js/pages/eda.js?v=creditlens_c6"></script>
+<script src="/js/pages/risk.js?v=creditlens_c6"></script>
+<script src="/js/pages/rules.js?v=creditlens_c6"></script>
+<script src="/js/pages/chat.js?v=creditlens_c6"></script>
+<script src="/js/app.js?v=creditlens_c6"></script>
 
 <script>
   // Seamless tab routing matching mockup
@@ -2020,8 +2039,24 @@
 
     if (pageId === 'overview') initOverviewPage();
     if (pageId === 'eda') initEDAPage();
-    if (pageId === 'scoring') initRiskPage();
-    if (pageId === 'rules') initRulesPage('all');
+    if (pageId === 'scoring') {
+      initRiskPage();
+      setTimeout(function() {
+        if (typeof preloadDefaultPredictionCharts === 'function') preloadDefaultPredictionCharts();
+        if (typeof resizeRiskCharts === 'function') resizeRiskCharts();
+      }, 60);
+    }
+    if (pageId === 'rules') {
+      initRulesPage('all');
+      setTimeout(function() {
+        if (typeof renderGlobalShapChart === 'function' && typeof DEFAULT_GLOBAL_SHAP !== 'undefined') {
+          renderGlobalShapChart(DEFAULT_GLOBAL_SHAP);
+        }
+        if (typeof globalShapChartInstance !== 'undefined' && globalShapChartInstance) {
+          try { globalShapChartInstance.resize(); } catch (e) {}
+        }
+      }, 60);
+    }
     if (pageId === 'talk') {
       if (window.ChatStore) {
         window.ChatStore.renderMainPage();

@@ -113,10 +113,14 @@ async function initEDAPage() {
     }
 
     // 4. Render Tab 4: Portfolio Overview
-    document.getElementById('port-total').textContent = portfolio.total_applicants_formatted;
-    document.getElementById('port-default-rate').textContent = `${portfolio.default_rate_pct}%`;
-    document.getElementById('port-credit').textContent = portfolio.avg_loan_credit;
-    document.getElementById('port-income').textContent = portfolio.avg_annual_income;
+    const elPortTotal = document.getElementById('port-total');
+    if (elPortTotal) elPortTotal.textContent = portfolio.total_applicants_formatted;
+    const elPortDefRate = document.getElementById('port-default-rate');
+    if (elPortDefRate) elPortDefRate.textContent = `${portfolio.default_rate_pct}%`;
+    const elPortCredit = document.getElementById('port-credit');
+    if (elPortCredit) elPortCredit.textContent = portfolio.avg_loan_credit;
+    const elPortIncome = document.getElementById('port-income');
+    if (elPortIncome) elPortIncome.textContent = portfolio.avg_annual_income;
 
     edaDataLoaded = true;
   } catch (err) {

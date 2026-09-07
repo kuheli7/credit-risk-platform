@@ -21,7 +21,14 @@ let currentRuleFilter = 'all';
 async function initRulesPage(filter = 'all') {
   currentRuleFilter = filter;
   // Preload global feature importance chart immediately so canvas is never blank
-  setTimeout(() => { renderGlobalShapChart(DEFAULT_GLOBAL_SHAP); }, 40);
+  const doRender = () => renderGlobalShapChart(DEFAULT_GLOBAL_SHAP);
+  if (typeof ensureChartReady === 'function') {
+    ensureChartReady(() => {
+      requestAnimationFrame(() => requestAnimationFrame(doRender));
+    });
+  } else {
+    setTimeout(doRender, 40);
+  }
 
   try {
     const data = await api.getDecisionRules(filter);
@@ -110,10 +117,25 @@ let globalShapChartInstance = null;
  */
 function renderGlobalShapChart(items) {
   const canvas = document.getElementById('chart-global-shap');
-  if (!canvas || !window.Chart || !items || items.length === 0) return;
+  if (!canvas || !items || items.length === 0) return;
+  if (typeof Chart === 'undefined') {
+    if (typeof ensureChartReady === 'function') {
+      ensureChartReady(() => renderGlobalShapChart(items));
+    }
+    return;
+  }
 
+  // If container is hidden or layout not yet computed, defer until visible
+  if (canvas.clientWidth === 0 || canvas.clientHeight === 0) {
+    setTimeout(() => renderGlobalShapChart(items), 60);
+    return;
+  }
+
+  if (typeof Chart !== 'undefined' && Chart.getChart(canvas)) {
+    try { Chart.getChart(canvas).destroy(); } catch (e) {}
+  }
   if (globalShapChartInstance) {
-    globalShapChartInstance.destroy();
+    try { globalShapChartInstance.destroy(); } catch (e) {}
     globalShapChartInstance = null;
   }
 
@@ -123,7 +145,7 @@ function renderGlobalShapChart(items) {
   const labels = sorted.map(d => d.display_name);
   const values = sorted.map(d => d.mean_abs_shap);
   
-  // Muted, sophisticated tones matching NeoStats natural palette
+  // Muted, sophisticated tones matching CreditLens natural palette
   const categoryColors = {
     'Bureau': '#344E41',       // Muted deep pine
     'Financial': '#4A6255',    // Muted slate olive
@@ -244,3 +266,6 @@ function formatMandatedAction(action) {
   }
   return `<b>${action}</b>`;
 }
+
+window.renderGlobalShapChart = renderGlobalShapChart;
+window.DEFAULT_GLOBAL_SHAP = DEFAULT_GLOBAL_SHAP;

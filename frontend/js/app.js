@@ -1,5 +1,5 @@
 /**
- * NeoStats Enterprise Risk Intelligence - Application Router & Main Controller
+ * CreditLens Enterprise Risk Intelligence - Application Router & Main Controller
  */
 
 const VIEWS = ['overview', 'eda', 'risk', 'rules', 'chat'];
