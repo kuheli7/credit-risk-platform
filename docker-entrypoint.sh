@@ -28,5 +28,8 @@ else
   fi
 fi
 
+# Ensure src.* and backend.* packages are importable by the venv Python
+export PYTHONPATH=/app
+
 # Hand off to the main process (CMD from Dockerfile)
 exec "$@"

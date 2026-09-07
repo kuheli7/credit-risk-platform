@@ -45,4 +45,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
 ENTRYPOINT ["/app/docker-entrypoint.sh"]
 
 # Run FastAPI platform
-CMD ["sh", "-c", "PYTHONPATH=/app uv run uvicorn backend.main:app --host 0.0.0.0 --port 8000"]
+CMD ["/app/.venv/bin/python", "-m", "uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
