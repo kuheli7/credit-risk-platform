@@ -189,6 +189,8 @@ credit_risk_platform/
 | `GET` | `/api/eda/data-quality` | Missing-value rates, imputation strategy, data integrity | Clean table of columns, missing %, types |
 | `GET` | `/api/eda/portfolio` | Macro portfolio aggregates and default rates | Aggregate statistics for portfolio overview |
 | `GET` | `/api/risk/presets` | Pre-configured applicant archetypes (Prime, Borderline, Subprime) | Full feature dictionaries for form population |
+| `GET` | `/api/risk/samples` | Curated sample historical applicant IDs with ground truth | Array of `{"sk_id_curr", "label", "ground_truth"}` |
+| `GET` | `/api/risk/lookup/{sk_id}` | Direct SQLite database lookup by historical applicant ID | Complete applicant record with ground truth default status |
 | `POST` | `/api/risk/predict` | Real-time LightGBM inference, score scaling, risk band | `default_probability`, `credit_score`, `risk_band`, `decision` |
 | `POST` | `/api/risk/predict` | Computes risk prediction, local SHAP attributions, and AI explanation | `risk_reducing_factors`, `risk_increasing_factors`, `ai_explanation` |
 | `GET` | `/api/rules` | ML-derived credit policy rules with optional filter `?risk=all\|high\|low` | Array of rules with conditions, rationale, actions |
@@ -255,7 +257,14 @@ The conversational interface uses **Groq Ultra-Fast Inference** (`qwen/qwen3.8-2
 2. **Destructive Mutation Blocker:** Strict regex and syntax validation reject any query attempting `DROP`, `DELETE`, `UPDATE`, `INSERT`, `ALTER`, or schema modifications.
 3. **Automatic Safety Limits:** Adds `LIMIT 100` to unconstrained queries and rejects explicit limits above `500`.
 4. **Hallucination Guard:** Rejects multiple statements and validates generated SQL with SQLite's query planner against the known database schema before execution. Invalid queries return a controlled error instead of fabricated answers.
-5. **Controlled SQL Expander:** Evaluators can inspect the generated SQL query and raw result table via a toggleable drawer.
+5. **Controlled SQL Expander & Dynamic Auto-Charts:** Evaluators can inspect the generated SQL query and raw result table via a toggleable drawer. Tabular results with numerical dimensions are automatically rendered as interactive Chart.js bar charts (with adaptive green/amber/red risk color coding) directly within the conversation stream.
+
+### Direct Historical Applicant Lookup (Ground Truth Benchmark)
+
+On the **Risk Scoring & Decisioning** page, underwriters are not limited to synthetic archetype presets:
+- Direct search bar allows querying any historical applicant by `SK_ID_CURR` (e.g. `100002`, `100003`, `100031`) directly from the SQLite database.
+- Auto-populates all 144 underwriting dimensions into the scoring pipeline.
+- Automatically compares the model's predicted risk score and underwriting decision (`APPROVED`, `REVIEW`, `DECLINED`) against the actual historical ground-truth outcome (`TARGET = 1` Default vs `TARGET = 0` Repaid).
 
 ### Prompt and Token Strategy
 
