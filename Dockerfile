@@ -21,6 +21,10 @@ COPY pyproject.toml uv.lock ./
 # Install dependencies into virtualenv without building this source tree as a package.
 RUN uv sync --frozen --no-dev --no-install-project
 
+# Register /app on sys.path for the venv's Python so that src.* imports work
+# regardless of how uvicorn is launched (uv run bypasses ENV PYTHONPATH).
+RUN echo '/app' > /app/.venv/lib/python3.11/site-packages/creditlens_paths.pth
+
 # Copy application source code
 COPY . .
 
@@ -41,4 +45,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
 ENTRYPOINT ["/app/docker-entrypoint.sh"]
 
 # Run FastAPI platform
-CMD ["uv", "run", "uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["sh", "-c", "PYTHONPATH=/app uv run uvicorn backend.main:app --host 0.0.0.0 --port 8000"]
