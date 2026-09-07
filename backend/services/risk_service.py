@@ -197,6 +197,19 @@ class RiskService:
 
         ai_explanation = " ".join(narrative_parts)
 
+        # Multi-dimensional risk radar profile (0-100 normalized indices)
+        bureau_idx = min(100, max(10, int(((ext2 + ext3) / 2.0) * 115)))
+        debt_cap_idx = min(100, max(10, int(100 - (annuity / max(income, 1.0) * 100 * 2.2))))
+        leverage_idx = min(100, max(10, int(100 - (credit / max(income, 1.0) * 12.0))))
+        tenure_idx = min(100, max(10, int(min(years_employed, 10.0) * 10.0)))
+        discipline_idx = min(100, max(10, int(100 - (refused_rate * 60 + min(active_loans, 5) * 8))))
+
+        radar_profile = {
+            "categories": ["Bureau Rating", "Debt Capacity", "Leverage Health", "Employment Stability", "Credit History"],
+            "applicant": [bureau_idx, debt_cap_idx, leverage_idx, tenure_idx, discipline_idx],
+            "benchmark": [82, 80, 75, 78, 85]
+        }
+
         return {
             "default_probability": round(prob, 4),
             "default_probability_pct": round(prob * 100, 2),
@@ -210,6 +223,7 @@ class RiskService:
             "shap_drivers": drivers,
             "risk_increasing_factors": risk_increasing,
             "risk_reducing_factors": risk_reducing,
+            "radar_profile": radar_profile,
             "ai_explanation": ai_explanation
         }
 

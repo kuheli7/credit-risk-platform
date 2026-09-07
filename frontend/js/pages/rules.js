@@ -75,11 +75,114 @@ async function initRulesPage(filter = 'all') {
           <div class="method-node-desc">${m.desc}</div>
         </div>
       `).join('');
+    // 5. Render Global TreeSHAP Feature Importance Chart
+    if (data.global_feature_importance) {
+      renderGlobalShapChart(data.global_feature_importance);
     }
 
   } catch (err) {
     console.error('Failed to load decision rules:', err);
   }
+}
+
+let globalShapChartInstance = null;
+
+/**
+ * Renders the global TreeSHAP feature importance horizontal bar chart
+ */
+function renderGlobalShapChart(items) {
+  const canvas = document.getElementById('chart-global-shap');
+  if (!canvas || !window.Chart || !items || items.length === 0) return;
+
+  if (globalShapChartInstance) {
+    globalShapChartInstance.destroy();
+    globalShapChartInstance = null;
+  }
+
+  // Reverse so highest importance is at the top of the horizontal bar chart
+  const sorted = [...items].reverse();
+
+  const labels = sorted.map(d => d.display_name);
+  const values = sorted.map(d => d.mean_abs_shap);
+  
+  // Muted, sophisticated tones matching NeoStats natural palette
+  const categoryColors = {
+    'Bureau': '#344E41',       // Muted deep pine
+    'Financial': '#4A6255',    // Muted slate olive
+    'Demographic': '#687E72',  // Muted mineral sage
+    'Behavioral': '#8C6754'    // Muted warm earth
+  };
+  const bgColors = sorted.map(d => categoryColors[d.category] || '#4A6255');
+
+  const ctx = canvas.getContext('2d');
+  globalShapChartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Mean |SHAP Value| (Impact on Default)',
+        data: values,
+        backgroundColor: bgColors,
+        borderColor: 'rgba(18,32,26,0.12)',
+        borderWidth: 1,
+        borderRadius: 3,
+        borderSkipped: false,
+        barPercentage: 0.68
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#12201A',
+          titleFont: { family: 'Space Grotesk', size: 13, weight: '600' },
+          bodyFont: { family: 'Inter', size: 12 },
+          padding: 12,
+          cornerRadius: 6,
+          callbacks: {
+            title: function(context) {
+              const item = sorted[context[0].dataIndex];
+              return `${item.display_name} (${item.feature})`;
+            },
+            label: function(context) {
+              const item = sorted[context.dataIndex];
+              return [
+                `Mean |SHAP| Impact: ${item.mean_abs_shap.toFixed(3)}`,
+                `Category: ${item.category}`,
+                `Role: ${item.description}`
+              ];
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: 'rgba(18,32,26,0.06)' },
+          ticks: {
+            font: { family: 'JetBrains Mono', size: 10.5 },
+            color: '#5C6B63'
+          },
+          title: {
+            display: true,
+            text: 'Mean Absolute SHAP Value (Impact on Default Probability)',
+            font: { family: 'Inter', size: 11, weight: '500' },
+            color: '#5C6B63'
+          },
+          beginAtZero: true
+        },
+        y: {
+          grid: { display: false },
+          ticks: {
+            font: { family: 'Inter', size: 11.5, weight: '500' },
+            color: '#1E241D'
+          }
+        }
+      }
+    }
+  });
 }
 
 /**

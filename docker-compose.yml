@@ -9,6 +9,9 @@ services:
     volumes:
       - ./data:/app/data
       - ./models:/app/models
+      - ./backend:/app/backend
+      - ./src:/app/src
+      - ./frontend:/app/frontend
     # Use the checked-in template as a clean-clone fallback.
     env_file:
       - .env.example

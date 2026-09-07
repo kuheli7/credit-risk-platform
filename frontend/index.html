@@ -713,11 +713,14 @@
     padding: 12px 16px;
     border-radius: 0 4px 4px 0;
   }
+  .talk-sql-box,
   .talk-sql-card {
-    background: #12201A;
+    background: #F4F6F3;
+    border: 1px solid rgba(18, 32, 26, 0.12);
     border-radius: 4px;
-    padding: 14px 16px;
+    padding: 12px 16px;
     margin-bottom: 14px;
+    margin-top: 10px;
     overflow-x: auto;
   }
   .talk-sql-header {
@@ -725,37 +728,53 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    color: var(--ink-dim);
+    text-transform: uppercase;
+    font-weight: 600;
   }
   .talk-sql-title {
     font-family: 'JetBrains Mono', monospace;
     font-size: 10.5px;
     letter-spacing: 0.08em;
-    color: #8FCB6F;
+    color: var(--ink-dim);
     text-transform: uppercase;
+    font-weight: 600;
   }
+  .talk-copy-btn,
   .talk-sql-copy-btn {
-    background: rgba(255,255,255,0.08);
-    border: 1px solid rgba(255,255,255,0.15);
-    color: #CBD5E1;
+    background: #FFFFFF;
+    border: 1px solid var(--line-strong);
+    color: var(--ink);
     font-family: 'JetBrains Mono', monospace;
     font-size: 10px;
+    font-weight: 600;
     padding: 3px 8px;
-    border-radius: 2px;
+    border-radius: 3px;
     cursor: pointer;
     transition: all 0.15s;
   }
+  .talk-copy-btn:hover,
   .talk-sql-copy-btn:hover {
-    background: rgba(255,255,255,0.2);
-    color: #FFFFFF;
+    background: var(--bg);
+    color: var(--green-dark);
   }
   .talk-sql-code {
     font-family: 'JetBrains Mono', monospace;
     font-size: 12px;
     line-height: 1.6;
-    color: #E2E8F0;
+    color: #12201A; /* Crisp dark ink / black */
     white-space: pre-wrap;
     word-break: break-all;
     margin: 0;
+    font-weight: 500;
+  }
+  .talk-sql-code code {
+    color: #12201A !important; /* Crisp dark ink / black */
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 500;
   }
   .talk-table-wrap {
     overflow-x: auto;
@@ -1687,6 +1706,52 @@
           </div>
 
         </div>
+
+        <!-- Interactive Visualizations: Radar Profile & Local SHAP Impact Chart -->
+        <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--line); display: grid; grid-template-columns: 1fr 1.15fr; gap: 28px; align-items: stretch;">
+          
+          <!-- Radar Chart Card -->
+          <div style="background: #FAFBF9; border: 1px solid var(--line); border-radius: 4px; padding: 20px; display: flex; flex-direction: column;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; gap: 8px; flex-wrap: wrap;">
+              <div>
+                <div class="pill" style="font-size: 9.5px; margin-bottom: 4px;">CREDIT PROFILE RADAR</div>
+                <div style="font-size: 14px; font-weight: 600; color: var(--navy);">Multi-Dimensional Risk Health</div>
+              </div>
+              <div style="display: flex; gap: 10px; font-family: 'JetBrains Mono', monospace; font-size: 11px;">
+                <span style="display:flex; align-items:center; gap:4px;"><span style="width:10px; height:3px; background:var(--green); display:inline-block;"></span> Applicant</span>
+                <span style="display:flex; align-items:center; gap:4px;"><span style="width:10px; height:3px; background:#94a3b8; display:inline-block; border-top:1px dashed #64748b;"></span> Benchmark</span>
+              </div>
+            </div>
+            <p style="font-size: 11.5px; color: var(--ink-dim); margin-bottom: 12px;">
+              Evaluates applicant strength (0–100 scale) across five key risk disciplines vs prime portfolio baseline.
+            </p>
+            <div style="flex: 1; min-height: 280px; position: relative;">
+              <canvas id="chart-risk-radar"></canvas>
+            </div>
+          </div>
+
+          <!-- Local SHAP Waterfall / Diverging Impact Chart Card -->
+          <div style="background: #FAFBF9; border: 1px solid var(--line); border-radius: 4px; padding: 20px; display: flex; flex-direction: column;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; gap: 8px; flex-wrap: wrap;">
+              <div>
+                <div class="pill" style="font-size: 9.5px; margin-bottom: 4px;">LOCAL EXPLAINABILITY (TreeSHAP)</div>
+                <div style="font-size: 14px; font-weight: 600; color: var(--navy);">Feature Risk Contribution</div>
+              </div>
+              <div style="display: flex; gap: 8px; font-family: 'JetBrains Mono', monospace; font-size: 10.5px;">
+                <span class="pill" style="background:#e8f5e9; color:#2e7d32; font-size:10px;">← Reduces Risk</span>
+                <span class="pill" style="background:#ffebee; color:#c62828; font-size:10px;">Increases Risk →</span>
+              </div>
+            </div>
+            <p style="font-size: 11.5px; color: var(--ink-dim); margin-bottom: 12px;">
+              Net log-odds contribution per feature: positive values drive default risk upward, negative values support approval.
+            </p>
+            <div style="flex: 1; min-height: 280px; position: relative;">
+              <canvas id="chart-risk-shap-bars"></canvas>
+            </div>
+          </div>
+
+        </div>
+
       </div>
     </div>
 
@@ -1743,7 +1808,28 @@
           <div class="rule-fields">
             <div><div class="l">BUSINESS RATIONALE</div><p>High rejection history across lenders combined with high current debt burden.</p></div>
             <div><div class="l">MANDATED ACTION</div><p><b>Decline automated approval;</b> flag for past delinquency inspection.</p></div>
+        </div>
+      </div>
+
+      <!-- Global Feature Importance: TreeSHAP Attribution Panel -->
+      <div class="panel" style="margin-top: 36px; padding: 24px; border: 1px solid var(--line); background: #FFFFFF;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; flex-wrap: wrap; gap: 12px;">
+          <div>
+            <div class="pill" style="font-size: 10px; margin-bottom: 6px; letter-spacing: 0.06em;">RULE DERIVATION EVIDENCE · TREESHAP</div>
+            <h3 style="font-size: 18px; margin: 0; color: var(--navy); font-weight: 600;">Portfolio Feature Drivers &middot; Mean |SHAP| Influence</h3>
+            <p style="font-size: 12.5px; color: var(--ink-dim); margin-top: 4px; max-width: 680px; line-height: 1.5;">
+              Statistical justification for the policy rules above. Quantifies which feature dimensions most heavily dictate default boundaries across 307k loans.
+            </p>
           </div>
+          <div style="display: flex; gap: 6px; font-family: 'JetBrains Mono', monospace; font-size: 10.5px; flex-wrap: wrap;">
+            <span class="pill" style="background: #E8EDE8; color: #2D4436; border: 1px solid rgba(45,68,54,0.12);">Bureau Agency</span>
+            <span class="pill" style="background: #EBF0EC; color: #435A4B; border: 1px solid rgba(67,90,75,0.12);">Debt Leverage</span>
+            <span class="pill" style="background: #F0F2EE; color: #57685D; border: 1px solid rgba(87,104,93,0.12);">Employment</span>
+            <span class="pill" style="background: #F5EFEA; color: #755243; border: 1px solid rgba(117,82,67,0.12);">Behavioral</span>
+          </div>
+        </div>
+        <div style="height: 330px; position: relative;">
+          <canvas id="chart-global-shap"></canvas>
         </div>
       </div>
 

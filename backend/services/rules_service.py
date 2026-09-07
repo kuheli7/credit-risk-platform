@@ -51,6 +51,8 @@ class RulesService:
             {"step": 5, "title": "Underwriting Policy", "desc": "Credit committee binds enforceable credit underwriting mandates (caps, declines, guarantor demands)."}
         ]
 
+        global_importance = self.explainer.get_global_feature_importance(top_k=10)
+
         return {
             "total_rules": len(all_rules),
             "high_risk_count": high_count,
@@ -58,5 +60,6 @@ class RulesService:
             "low_risk_count": low_count,
             "filter_applied": risk_filter,
             "rules": filtered_rules,
+            "global_feature_importance": global_importance,
             "methodology": methodology
         }

@@ -209,6 +209,12 @@ async function handleRiskEvaluation(e) {
     // 4. Render SHAP Risk Factors (Diverging horizontal bars matching mockup)
     renderShapFactors(res.risk_reducing_factors, res.risk_increasing_factors);
 
+    // 4b. Render Interactive Radar Profile and Local SHAP Contribution Charts
+    if (res.radar_profile) {
+      renderRiskRadar(res.radar_profile, riskBand);
+    }
+    renderLocalShapChart(res.risk_reducing_factors, res.risk_increasing_factors);
+
     // 5. Populate AI Explanation
     const expTextEl = document.getElementById('res-explanation-text') || document.getElementById('res-ai-narrative');
     if (expTextEl) expTextEl.textContent = res.ai_explanation;
@@ -310,4 +316,217 @@ function renderShapFactors(reducing, increasing) {
       }).join('');
     }
   }
+}
+
+let riskRadarChartInstance = null;
+let riskShapChartInstance = null;
+
+/**
+ * Renders the multi-dimensional risk radar chart (Applicant vs Prime Benchmark)
+ */
+function renderRiskRadar(profile, riskBand) {
+  const canvas = document.getElementById('chart-risk-radar');
+  if (!canvas || !window.Chart || !profile) return;
+
+  if (riskRadarChartInstance) {
+    riskRadarChartInstance.destroy();
+    riskRadarChartInstance = null;
+  }
+
+  let applicantColor = '#3C7A26'; // Muted dark green
+  let applicantBg = 'rgba(60, 122, 38, 0.18)';
+  if (riskBand === 'HIGH') {
+    applicantColor = '#B85C3E'; // Muted warm terracotta
+    applicantBg = 'rgba(184, 92, 62, 0.18)';
+  } else if (riskBand === 'MEDIUM') {
+    applicantColor = '#C88A34'; // Muted warm ochre
+    applicantBg = 'rgba(200, 138, 52, 0.18)';
+  }
+
+  const ctx = canvas.getContext('2d');
+  riskRadarChartInstance = new Chart(ctx, {
+    type: 'radar',
+    data: {
+      labels: profile.categories || ['Bureau Rating', 'Debt Capacity', 'Leverage Health', 'Employment Stability', 'Credit History'],
+      datasets: [
+        {
+          label: 'Applicant Profile',
+          data: profile.applicant || [50, 50, 50, 50, 50],
+          borderColor: applicantColor,
+          backgroundColor: applicantBg,
+          pointBackgroundColor: applicantColor,
+          pointBorderColor: '#fff',
+          pointHoverBackgroundColor: '#fff',
+          pointHoverBorderColor: applicantColor,
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          borderWidth: 2
+        },
+        {
+          label: 'Prime Benchmark',
+          data: profile.benchmark || [82, 80, 75, 78, 85],
+          borderColor: '#718277',
+          borderDash: [4, 4],
+          backgroundColor: 'rgba(113, 130, 119, 0.08)',
+          pointBackgroundColor: '#718277',
+          pointRadius: 3,
+          borderWidth: 1.5
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: true,
+          position: 'bottom',
+          labels: {
+            boxWidth: 12,
+            font: { family: 'Inter', size: 11 },
+            color: '#1E241D'
+          }
+        },
+        tooltip: {
+          backgroundColor: '#12201A',
+          titleFont: { family: 'Space Grotesk', size: 12, weight: '600' },
+          bodyFont: { family: 'Inter', size: 11.5 },
+          padding: 10,
+          cornerRadius: 6,
+          callbacks: {
+            label: function(context) {
+              return `${context.dataset.label}: ${context.raw}/100`;
+            }
+          }
+        }
+      },
+      scales: {
+        r: {
+          min: 0,
+          max: 100,
+          ticks: {
+            stepSize: 20,
+            display: false
+          },
+          angleLines: {
+            color: 'rgba(18,32,26,0.08)'
+          },
+          grid: {
+            color: 'rgba(18,32,26,0.08)'
+          },
+          pointLabels: {
+            font: { family: 'Inter', size: 11, weight: '600' },
+            color: '#1E241D'
+          }
+        }
+      }
+    }
+  });
+}
+
+/**
+ * Renders the local TreeSHAP contribution diverging horizontal bar chart
+ */
+function renderLocalShapChart(reducing, increasing) {
+  const canvas = document.getElementById('chart-risk-shap-bars');
+  if (!canvas || !window.Chart) return;
+
+  if (riskShapChartInstance) {
+    riskShapChartInstance.destroy();
+    riskShapChartInstance = null;
+  }
+
+  const items = [];
+  (reducing || []).slice(0, 4).forEach(d => {
+    items.push({
+      feature: d.feature.replace(/_/g, ' ').toLowerCase(),
+      impact: -Math.abs(d.shap_impact),
+      raw_feature: d.feature,
+      type: 'reducing'
+    });
+  });
+  (increasing || []).slice(0, 4).forEach(d => {
+    items.push({
+      feature: d.feature.replace(/_/g, ' ').toLowerCase(),
+      impact: Math.abs(d.shap_impact),
+      raw_feature: d.feature,
+      type: 'increasing'
+    });
+  });
+
+  // Sort ascending: reducing (negative) to increasing (positive)
+  items.sort((a, b) => a.impact - b.impact);
+
+  if (items.length === 0) return;
+
+  const labels = items.map(d => d.feature);
+  const values = items.map(d => d.impact);
+  const bgColors = items.map(d => d.type === 'reducing' ? '#3C7A26' : '#B85C3E');
+
+  const ctx = canvas.getContext('2d');
+  riskShapChartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'SHAP Value (Log-Odds Impact)',
+        data: values,
+        backgroundColor: bgColors,
+        borderRadius: 4,
+        borderSkipped: false,
+        barPercentage: 0.7
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#12201A',
+          titleFont: { family: 'Space Grotesk', size: 12, weight: '600' },
+          bodyFont: { family: 'Inter', size: 11.5 },
+          padding: 10,
+          cornerRadius: 6,
+          callbacks: {
+            title: function(context) {
+              const item = items[context[0].dataIndex];
+              return item.raw_feature;
+            },
+            label: function(context) {
+              const val = context.raw;
+              const dir = val > 0 ? `+${val.toFixed(3)} (Increases Default Risk)` : `${val.toFixed(3)} (Reduces Default Risk)`;
+              return `SHAP Impact: ${dir}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: 'rgba(18,32,26,0.06)' },
+          ticks: {
+            font: { family: 'JetBrains Mono', size: 10.5 },
+            color: '#5C6B63',
+            callback: function(v) {
+              return (v > 0 ? '+' : '') + v.toFixed(2);
+            }
+          },
+          title: {
+            display: true,
+            text: '← Lowers Risk | Increases Risk →',
+            font: { family: 'Inter', size: 11, weight: '500' },
+            color: '#5C6B63'
+          }
+        },
+        y: {
+          grid: { display: false },
+          ticks: {
+            font: { family: 'Inter', size: 11.5, weight: '500' },
+            color: '#1E241D'
+          }
+        }
+      }
+    }
+  });
 }
