@@ -1,5 +1,8 @@
 .env
-data/
+# Ignore top-level data/ (SQLite DB, raw CSVs) but NOT src/data/ (Python source package)
+/data/
+!src/data/
+!src/data/**
 *.csv
 *.zip
 .venv/
