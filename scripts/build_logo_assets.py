@@ -1,167 +1,94 @@
+"""
+Render a clean bold-C CreditLens logo to PNG/ICO using PIL only.
+No external SVG renderer needed.
+"""
 import math
-import os
-from PIL import Image, ImageDraw, ImageFilter
+from PIL import Image, ImageDraw, ImageFont
 
-SVG_CONTENT = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="100%" height="100%">
-  <defs>
-    <!-- Background Dark Obsidian Gradient -->
-    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0A120D" />
-      <stop offset="100%" stop-color="#12241A" />
-    </linearGradient>
+SIZE = 1024
+PADDING = 40
+RADIUS = 220  # squircle corner radius
 
-    <!-- Vivid Emerald-to-Lime Radiant Gradient for the C -->
-    <linearGradient id="cGrad" x1="0%" y1="100%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#22C55E" />
-      <stop offset="50%" stop-color="#4ADE80" />
-      <stop offset="100%" stop-color="#BEF264" />
-    </linearGradient>
 
-    <!-- Glowing Cyber Emerald Border -->
-    <linearGradient id="borderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="rgba(74, 222, 128, 0.75)" />
-      <stop offset="50%" stop-color="rgba(34, 197, 94, 0.45)" />
-      <stop offset="100%" stop-color="rgba(190, 242, 100, 0.6)" />
-    </linearGradient>
+def make_logo(size: int = 1024) -> Image.Image:
+    pad = int(PADDING * size / 1024)
+    r = int(RADIUS * size / 1024)
 
-    <!-- Multi-stage Neon Drop Shadow / Glow -->
-    <filter id="neonGlow" x="-30%" y="-30%" width="160%" height="160%">
-      <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#4ADE80" flood-opacity="0.65" />
-      <feDropShadow dx="0" dy="3" stdDeviation="12" flood-color="#22C55E" flood-opacity="0.35" />
-    </filter>
+    img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
 
-    <filter id="badgeShadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#000000" flood-opacity="0.5" />
-    </filter>
-  </defs>
-
-  <!-- Rounded Squircle Badge Base -->
-  <rect x="12" y="12" width="232" height="232" rx="58" fill="url(#bgGrad)" stroke="url(#borderGrad)" stroke-width="3" filter="url(#badgeShadow)" />
-
-  <!-- Subtle Concentric Aperture Radar Rings -->
-  <circle cx="128" cy="128" r="78" fill="none" stroke="rgba(74, 222, 128, 0.18)" stroke-width="1.5" stroke-dasharray="6 4" />
-  <circle cx="128" cy="128" r="48" fill="none" stroke="rgba(74, 222, 128, 0.28)" stroke-width="1.5" />
-
-  <!-- Center Reticle Core Dot -->
-  <circle cx="128" cy="128" r="6.5" fill="#BEF264" opacity="0.95" />
-
-  <!-- Bold Modern Geometric 'C' -->
-  <path d="M 178 78
-           A 68 68 0 1 0 178 178"
-        fill="none"
-        stroke="url(#cGrad)"
-        stroke-width="28"
-        stroke-linecap="round"
-        filter="url(#neonGlow)" />
-
-  <!-- Top Lens Flare Accent Dot -->
-  <circle cx="128" cy="60" r="4" fill="#FFFFFF" opacity="0.95" />
-</svg>"""
-
-def main():
-    # 1. Save SVG files
-    with open("frontend/assets/logo.svg", "w", encoding="utf-8") as f:
-        f.write(SVG_CONTENT)
-    with open("app/assets/logo.svg", "w", encoding="utf-8") as f:
-        f.write(SVG_CONTENT)
-    print("Saved logo.svg in frontend and app")
-
-    # 2. Render high-res raster assets using PIL
-    size = 1024
-    padding = 44
-    r = 230
-
-    bg = Image.new("RGBA", (size, size), (0, 0, 0, 0))
-    bg_draw = ImageDraw.Draw(bg)
-    bg_draw.rounded_rectangle(
-        [padding, padding, size - padding, size - padding],
+    # Dark squircle background — gradient approximated with solid
+    draw.rounded_rectangle(
+        [pad, pad, size - pad, size - pad],
         radius=r,
-        fill=(10, 18, 13, 255),
-        outline=(74, 222, 128, 160),
-        width=12,
+        fill=(11, 22, 14, 255),
     )
 
-    center = (size // 2, size // 2)
-    outer_r = 310
-    inner_r = 190
+    # Draw the C using a thick arc (open circle, ~300° sweep, gap on the right)
+    cx, cy = size // 2, size // 2
 
-    bg_draw.ellipse(
-        [center[0] - outer_r, center[1] - outer_r, center[0] + outer_r, center[1] + outer_r],
-        outline=(74, 222, 128, 55),
-        width=5,
-    )
-    bg_draw.ellipse(
-        [center[0] - inner_r, center[1] - inner_r, center[0] + inner_r, center[1] + inner_r],
-        outline=(74, 222, 128, 80),
-        width=5,
-    )
+    # Stroke width and arc radius
+    stroke = int(size * 0.125)        # ~128px at 1024
+    arc_r = int(size * 0.33)          # ~338px radius
 
-    c_layer = Image.new("RGBA", (size, size), (0, 0, 0, 0))
-    c_draw = ImageDraw.Draw(c_layer)
+    # Draw filled arc by layering circles along the arc path
+    # Gap: 60° to the right => arc from 60° to 300° (240° sweep) on standard coords
+    # PIL angles: 0=right, 90=bottom, 180=left, 270=top
+    start_angle = 50    # degrees
+    end_angle = 310     # degrees
+    num_steps = 400
 
-    c_radius = 275
-    c_width = 118
+    for i in range(num_steps + 1):
+        t = i / num_steps
+        angle_deg = start_angle + (end_angle - start_angle) * t
+        angle_rad = math.radians(angle_deg)
 
-    start_deg = 36
-    end_deg = 324
-    num_points = 350
+        px = cx + arc_r * math.cos(angle_rad)
+        py = cy + arc_r * math.sin(angle_rad)
 
-    for i in range(num_points + 1):
-        ang_deg = start_deg + (end_deg - start_deg) * (i / num_points)
-        ang_rad = math.radians(ang_deg)
-        x = center[0] + c_radius * math.cos(ang_rad)
-        y = center[1] + c_radius * math.sin(ang_rad)
-        t = i / num_points
-        if t < 0.5:
-            st = t / 0.5
-            cr = int(34 * (1 - st) + 74 * st)
-            cg = int(197 * (1 - st) + 222 * st)
-            cb = int(94 * (1 - st) + 128 * st)
-        else:
-            st = (t - 0.5) / 0.5
-            cr = int(74 * (1 - st) + 190 * st)
-            cg = int(222 * (1 - st) + 242 * st)
-            cb = int(128 * (1 - st) + 100 * st)
-        c_draw.ellipse(
-            [x - c_width / 2, y - c_width / 2, x + c_width / 2, y + c_width / 2],
+        # Gradient: lime green (#7EDB5A) at top → forest green (#4A9E2F) at bottom
+        # t=0 → top-right terminal, t=1 → bottom-right terminal
+        # Use y-position for gradient direction
+        gy = (py - (cy - arc_r)) / (2 * arc_r)  # 0=top, 1=bottom
+        gy = max(0.0, min(1.0, gy))
+        cr = int(126 * (1 - gy) + 74 * gy)   # 126→74
+        cg = int(219 * (1 - gy) + 158 * gy)  # 219→158
+        cb = int(90 * (1 - gy) + 47 * gy)    # 90→47
+
+        half = stroke // 2
+        draw.ellipse(
+            [px - half, py - half, px + half, py + half],
             fill=(cr, cg, cb, 255),
         )
 
-    c_draw.ellipse(
-        [center[0] - 24, center[1] - 24, center[0] + 24, center[1] + 24],
-        fill=(190, 242, 100, 255),
-    )
-    flare_x = center[0]
-    flare_y = center[1] - c_radius
-    c_draw.ellipse(
-        [flare_x - 16, flare_y - 16, flare_x + 16, flare_y + 16],
-        fill=(255, 255, 255, 250),
-    )
+    return img
 
-    glow = c_layer.filter(ImageFilter.GaussianBlur(radius=26))
-    comp1 = Image.alpha_composite(bg, glow)
-    final_im = Image.alpha_composite(comp1, c_layer)
 
-    res256 = final_im.resize((256, 256), Image.Resampling.LANCZOS)
-    res64 = final_im.resize((64, 64), Image.Resampling.LANCZOS)
-    res48 = final_im.resize((48, 48), Image.Resampling.LANCZOS)
-    res32 = final_im.resize((32, 32), Image.Resampling.LANCZOS)
-    res16 = final_im.resize((16, 16), Image.Resampling.LANCZOS)
+def main():
+    full = make_logo(1024)
 
-    res256.save("frontend/assets/favicon.png")
-    res32.save("frontend/assets/favicon-32x32.png")
-    res16.save("frontend/assets/favicon-16x16.png")
+    sizes = {
+        "frontend/assets/favicon.png":    256,
+        "frontend/assets/favicon-32x32.png": 32,
+        "frontend/assets/favicon-16x16.png": 16,
+        "app/assets/favicon.png":         256,
+        "app/assets/favicon_64.png":       64,
+    }
 
-    res256.save("app/assets/favicon.png")
-    res64.save("app/assets/favicon_64.png")
+    for path, sz in sizes.items():
+        full.resize((sz, sz), Image.Resampling.LANCZOS).save(path)
+        print(f"  saved {path} ({sz}x{sz})")
 
-    # Multi-resolution ICO for perfect browser tab display
+    # Multi-size ICO
+    res256 = full.resize((256, 256), Image.Resampling.LANCZOS)
     res256.save(
         "frontend/assets/favicon.ico",
         format="ICO",
         sizes=[(16, 16), (32, 32), (48, 48), (64, 64)],
     )
-    print("All favicon PNGs and ICO files successfully created!")
+    print("  saved frontend/assets/favicon.ico (multi-size)")
+    print("Done.")
+
 
 if __name__ == "__main__":
     main()

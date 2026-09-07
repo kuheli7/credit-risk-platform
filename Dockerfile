@@ -12,6 +12,9 @@ RUN pip install --no-cache-dir uv
 
 WORKDIR /app
 
+# Ensure src/ and backend/ are importable as top-level packages
+ENV PYTHONPATH=/app
+
 # Copy project manifest and lockfile
 COPY pyproject.toml uv.lock ./
 
