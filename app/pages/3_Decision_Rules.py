@@ -46,7 +46,7 @@ with tabs[0]:
     explainer = CreditRiskExplainer()
     rules = explainer.get_derived_decision_rules()
 
-    filter_tier = st.radio("Filter Rules by Risk Tier:", ["All Rules", "High Risk Rules Only", "Low Risk Rules Only"], horizontal=True)
+    filter_tier = st.radio("Filter Rules by Risk Tier:", ["All Rules", "High Risk Rules Only", "Medium Risk Rules Only", "Low Risk Rules Only"], horizontal=True)
 
     current_theme = get_current_theme()
     rule_code_bg = "rgba(15, 23, 42, 0.6)" if current_theme == "dark" else "rgba(241, 245, 249, 0.95)"
@@ -54,12 +54,22 @@ with tabs[0]:
 
     for r in rules:
         is_high = "HIGH" in r["risk_outcome"]
+        is_med = "MEDIUM" in r["risk_outcome"]
+        is_low = "LOW" in r["risk_outcome"]
+
         if filter_tier == "High Risk Rules Only" and not is_high:
             continue
-        if filter_tier == "Low Risk Rules Only" and is_high:
+        if filter_tier == "Medium Risk Rules Only" and not is_med:
+            continue
+        if filter_tier == "Low Risk Rules Only" and not is_low:
             continue
 
-        badge_class = "badge-high" if is_high else "badge-low"
+        if is_high:
+            badge_class = "badge-high"
+        elif is_med:
+            badge_class = "badge-medium"
+        else:
+            badge_class = "badge-low"
 
         st.markdown(f"""
         <div class="glass-card">

@@ -109,6 +109,22 @@ class CreditRiskExplainer:
             },
             {
                 "rule_id": "CR-RULE-04",
+                "condition": "EXT_SOURCE_2 BETWEEN 0.35 AND 0.55 AND ANNUITY_INCOME_RATIO BETWEEN 0.18 AND 0.28",
+                "risk_outcome": "MEDIUM DEFAULT RISK",
+                "confidence": "78.4%",
+                "business_rationale": "Borderline credit bureau rating paired with intermediate installment burden near debt service threshold.",
+                "policy_action": "Secondary underwriting review; mandate 3-month bank statement verification and payroll direct debit."
+            },
+            {
+                "rule_id": "CR-RULE-05",
+                "condition": "BUREAU_ACTIVE_LOANS >= 2 AND DAYS_EMPLOYED BETWEEN 365 AND 1095",
+                "risk_outcome": "MEDIUM DEFAULT RISK",
+                "confidence": "75.6%",
+                "business_rationale": "Multiple active credit lines with developing employment tenure (1 to 3 years).",
+                "policy_action": "Cap Loan-to-Value (LTV) at 75%; restrict maximum loan tenor to 36 months."
+            },
+            {
+                "rule_id": "CR-RULE-06",
                 "condition": "EXT_SOURCES_MEAN > 0.65 AND PAYMENT_RATE < 0.06",
                 "risk_outcome": "LOW DEFAULT RISK",
                 "confidence": "93.2%",
@@ -116,7 +132,7 @@ class CreditRiskExplainer:
                 "policy_action": "Fast-track automated sanction; grant preferential interest rate tier."
             },
             {
-                "rule_id": "CR-RULE-05",
+                "rule_id": "CR-RULE-07",
                 "condition": "GOODS_PRICE_CREDIT_RATIO >= 1.0 AND EMPLOYED_TO_AGE_RATIO > 0.20",
                 "risk_outcome": "LOW DEFAULT RISK",
                 "confidence": "89.6%",

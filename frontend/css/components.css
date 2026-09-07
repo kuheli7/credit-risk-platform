@@ -508,6 +508,11 @@
   font-weight: 600;
 }
 
+.rule-logic .w, .rule-condition-box .w {
+  color: var(--amber);
+  font-weight: 600;
+}
+
 .rule-logic .r, .rule-condition-box .r {
   color: var(--red);
   font-weight: 600;

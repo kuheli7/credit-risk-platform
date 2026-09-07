@@ -13,6 +13,8 @@ async function initRulesPage(filter = 'all') {
     // 1. Update Metrics
     document.getElementById('rules-count-total').textContent = data.total_rules;
     document.getElementById('rules-count-high').textContent = data.high_risk_count;
+    const medCountEl = document.getElementById('rules-count-medium');
+    if (medCountEl) medCountEl.textContent = data.medium_risk_count;
     document.getElementById('rules-count-low').textContent = data.low_risk_count;
 
     // 2. Update Filter Buttons State
@@ -30,6 +32,7 @@ async function initRulesPage(filter = 'all') {
 
       container.innerHTML = data.rules.map(r => {
         const flagClass = r.risk_type === 'low' ? 'risk-flag low' : (r.risk_type === 'medium' ? 'risk-flag medium' : 'risk-flag');
+        const outcomeClass = r.risk_type === 'low' ? 'k' : (r.risk_type === 'medium' ? 'w' : 'r');
         return `
           <div class="rule">
             <div class="rule-top">
@@ -41,7 +44,7 @@ async function initRulesPage(filter = 'all') {
             </div>
 
             <div class="rule-logic">
-              IF ${formatRuleCondition(r.condition)} THEN <span class="${r.risk_type === 'low' ? 'k' : 'r'}">${r.risk_outcome}</span>
+              IF ${formatRuleCondition(r.condition)} THEN <span class="${outcomeClass}">${r.risk_outcome}</span>
             </div>
 
             <div class="rule-fields">

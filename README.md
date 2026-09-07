@@ -231,22 +231,28 @@ Using `shap.TreeExplainer`, the platform computes exact Shapley values derived f
 - **Local Waterfall Attributions:** Decomposes an applicant's raw log-odds score into positive (risk-increasing) and negative (risk-reducing) contributions, generating compliant **Adverse Action Reasons**.
 
 ### Credit Policy Rules (`MODEL → SHAP → POLICY`)
-The platform bridges black-box ML and underwriting policy via a 5-step derivation pipeline:
-1. **Rule CR-01:** `IF EXT_SOURCE_2 < 0.35 AND CREDIT_INCOME_RATIO > 3.2 → HIGH RISK (Confidence: 82.4%)`  
+The platform bridges black-box ML and underwriting policy via a 5-step derivation pipeline, segmenting underwriting boundaries into three distinct risk tiers:
+1. **Rule CR-01 (High Risk):** `IF EXT_SOURCE_2 < 0.35 AND CREDIT_INCOME_RATIO > 3.2 → HIGH RISK (Confidence: 82.4%)`  
    *Business Rationale:* Weak external credit bureau score combined with excessive debt relative to annual income.  
    *Underwriting Action:* Mandatory credit committee review; require guarantor or lower credit limit.
-2. **Rule CR-02:** `IF PREV_APP_REFUSED_RATE > 0.40 AND BUREAU_ACTIVE_LOANS >= 3 → HIGH RISK (Confidence: 77.1%)`  
+2. **Rule CR-02 (High Risk):** `IF PREV_APP_REFUSED_RATE > 0.40 AND BUREAU_ACTIVE_LOANS >= 3 → HIGH RISK (Confidence: 77.1%)`  
    *Business Rationale:* History of frequent rejections coupled with active multi-lender debt obligations.  
    *Underwriting Action:* Decline automated approval; inspect past multi-lender delinquency.
-3. **Rule CR-03:** `IF DAYS_EMPLOYED < 365 AND ANNUITY_INCOME_RATIO > 0.30 → HIGH RISK (Confidence: 74.8%)`  
+3. **Rule CR-03 (High Risk):** `IF DAYS_EMPLOYED < 365 AND ANNUITY_INCOME_RATIO > 0.30 → HIGH RISK (Confidence: 74.8%)`  
    *Business Rationale:* Short employment tenure paired with severe monthly installment debt burden.  
    *Underwriting Action:* Short tenure with heavy installment ratio requires payroll deduction guarantee.
-4. **Rule CR-04:** `IF EXT_SOURCES_MEAN > 0.65 AND PAYMENT_RATE < 0.06 → LOW RISK (Confidence: 93.2%)`  
+4. **Rule CR-04 (Medium Risk):** `IF EXT_SOURCE_2 BETWEEN 0.35 AND 0.55 AND ANNUITY_INCOME_RATIO BETWEEN 0.18 AND 0.28 → MEDIUM RISK (Confidence: 78.4%)`  
+   *Business Rationale:* Borderline credit bureau rating paired with intermediate installment burden near debt service threshold.  
+   *Underwriting Action:* Secondary underwriting review; mandate 3-month bank statement verification and payroll direct debit.
+5. **Rule CR-05 (Medium Risk):** `IF BUREAU_ACTIVE_LOANS >= 2 AND DAYS_EMPLOYED BETWEEN 365 AND 1095 → MEDIUM RISK (Confidence: 75.6%)`  
+   *Business Rationale:* Multiple active credit lines with developing employment tenure (1 to 3 years).  
+   *Underwriting Action:* Cap Loan-to-Value (LTV) at 75%; restrict maximum loan tenor to 36 months.
+6. **Rule CR-06 (Low Risk):** `IF EXT_SOURCES_MEAN > 0.65 AND PAYMENT_RATE < 0.06 → LOW RISK (Confidence: 93.2%)`  
    *Business Rationale:* Superior bureau scores combined with highly manageable monthly repayment terms.  
    *Underwriting Action:* Fast-track automated sanction with preferential prime interest margin.
-5. **Rule CR-05:** `IF GOODS_PRICE_CREDIT_RATIO >= 1.0 AND EMPLOYED_TO_AGE_RATIO > 0.20 → LOW RISK (Confidence: 89.6%)`  
+7. **Rule CR-07 (Low Risk):** `IF GOODS_PRICE_CREDIT_RATIO >= 1.0 AND EMPLOYED_TO_AGE_RATIO > 0.20 → LOW RISK (Confidence: 89.6%)`  
    *Business Rationale:* Fully asset-backed loan combined with mature, stable employment longevity.  
-   *Underwriting Action:* Fully asset-backed loan with established employment qualifies for instant disbursement.
+   *Underwriting Action:* Standard approval workflow; enforce baseline document requirements.
 
 ---
 

@@ -14,20 +14,33 @@ class RulesService:
         
         # Count statistics
         high_count = sum(1 for r in all_rules if "HIGH" in r["risk_outcome"])
+        med_count = sum(1 for r in all_rules if "MEDIUM" in r["risk_outcome"])
         low_count = sum(1 for r in all_rules if "LOW" in r["risk_outcome"])
 
         # Filter
         filtered_rules = []
         for r in all_rules:
             is_high = "HIGH" in r["risk_outcome"]
+            is_med = "MEDIUM" in r["risk_outcome"]
+            is_low = "LOW" in r["risk_outcome"]
+
             if risk_filter == "high" and not is_high:
                 continue
-            if risk_filter == "low" and is_high:
+            if risk_filter == "medium" and not is_med:
+                continue
+            if risk_filter == "low" and not is_low:
                 continue
             
             rule_copy = dict(r)
-            rule_copy["risk_tier"] = "HIGH RISK" if is_high else "LOW RISK"
-            rule_copy["risk_type"] = "high" if is_high else "low"
+            if is_high:
+                rule_copy["risk_tier"] = "HIGH RISK"
+                rule_copy["risk_type"] = "high"
+            elif is_med:
+                rule_copy["risk_tier"] = "MEDIUM RISK"
+                rule_copy["risk_type"] = "medium"
+            else:
+                rule_copy["risk_tier"] = "LOW RISK"
+                rule_copy["risk_type"] = "low"
             filtered_rules.append(rule_copy)
 
         methodology = [
@@ -41,6 +54,7 @@ class RulesService:
         return {
             "total_rules": len(all_rules),
             "high_risk_count": high_count,
+            "medium_risk_count": med_count,
             "low_risk_count": low_count,
             "filter_applied": risk_filter,
             "rules": filtered_rules,
