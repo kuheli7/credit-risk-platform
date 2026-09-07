@@ -75,6 +75,8 @@ async function initRulesPage(filter = 'all') {
           <div class="method-node-desc">${m.desc}</div>
         </div>
       `).join('');
+    }
+
     // 5. Render Global TreeSHAP Feature Importance Chart
     if (data.global_feature_importance) {
       renderGlobalShapChart(data.global_feature_importance);

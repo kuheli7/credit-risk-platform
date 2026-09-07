@@ -209,12 +209,6 @@ async function handleRiskEvaluation(e) {
     // 4. Render SHAP Risk Factors (Diverging horizontal bars matching mockup)
     renderShapFactors(res.risk_reducing_factors, res.risk_increasing_factors);
 
-    // 4b. Render Interactive Radar Profile and Local SHAP Contribution Charts
-    if (res.radar_profile) {
-      renderRiskRadar(res.radar_profile, riskBand);
-    }
-    renderLocalShapChart(res.risk_reducing_factors, res.risk_increasing_factors);
-
     // 5. Populate AI Explanation
     const expTextEl = document.getElementById('res-explanation-text') || document.getElementById('res-ai-narrative');
     if (expTextEl) expTextEl.textContent = res.ai_explanation;
@@ -251,9 +245,18 @@ async function handleRiskEvaluation(e) {
       sigRefusal.style.color = refColor;
     }
 
+    // Make results container visible FIRST so canvas elements have layout dimensions
     if (resultsContainer) {
       resultsContainer.style.display = 'block';
     }
+
+    // 7. Render Interactive Radar Profile and Local SHAP Contribution Charts after DOM reflow
+    setTimeout(() => {
+      if (res.radar_profile) {
+        renderRiskRadar(res.radar_profile, riskBand);
+      }
+      renderLocalShapChart(res.risk_reducing_factors, res.risk_increasing_factors);
+    }, 60);
 
     // Smoothly scroll down to prediction section
     setTimeout(() => {
@@ -261,7 +264,7 @@ async function handleRiskEvaluation(e) {
       if (predSection) {
         predSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
-    }, 80);
+    }, 120);
 
   } catch (err) {
     console.error('Risk evaluation failed:', err);
