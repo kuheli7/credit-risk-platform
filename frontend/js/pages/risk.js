@@ -6,7 +6,39 @@
 
 let riskPresets = [];
 
+/**
+ * Preloads Risk Radar and Local SHAP charts based on the pre-filled default prediction in the HTML
+ */
+function preloadDefaultPredictionCharts() {
+  const defaultRadar = {
+    categories: ['Bureau Rating', 'Debt Capacity', 'Leverage Health', 'Employment Stability', 'Credit History'],
+    applicant: [24, 38, 26, 42, 22],
+    benchmark: [82, 80, 75, 78, 85]
+  };
+  const defaultReducing = [
+    { feature: 'DAYS_BIRTH', shap_impact: -0.39 },
+    { feature: 'OWN_CAR_AGE', shap_impact: -0.22 }
+  ];
+  const defaultIncreasing = [
+    { feature: 'EXT_SOURCES_MEAN', shap_impact: 1.23 },
+    { feature: 'PAYMENT_RATE', shap_impact: 0.27 }
+  ];
+
+  const resultsContainer = document.getElementById('risk-results-container');
+  if (resultsContainer) {
+    resultsContainer.style.display = 'block';
+  }
+
+  setTimeout(() => {
+    renderRiskRadar(defaultRadar, 'HIGH');
+    renderLocalShapChart(defaultReducing, defaultIncreasing);
+  }, 60);
+}
+
 async function initRiskPage() {
+  // Preload charts matching the pre-populated verdict on page
+  preloadDefaultPredictionCharts();
+
   try {
     riskPresets = await api.getRiskPresets();
     const presetSelect = document.getElementById('risk-preset-select');
@@ -18,10 +50,10 @@ async function initRiskPage() {
         presetSelect.appendChild(opt);
       });
 
-      // Default load first preset
+      // Default load first preset without triggering second evaluation
       if (riskPresets.length > 0) {
         presetSelect.value = riskPresets[0].id;
-        loadRiskPreset(riskPresets[0].id);
+        loadRiskPreset(riskPresets[0].id, false);
       }
     }
   } catch (err) {
@@ -29,7 +61,10 @@ async function initRiskPage() {
   }
 }
 
-function loadRiskPreset(presetId) {
+// Ensure charts are preloaded on DOM load
+setTimeout(preloadDefaultPredictionCharts, 120);
+
+function loadRiskPreset(presetId, autoEval = true) {
   const p = riskPresets.find(x => x.id === presetId);
   if (!p) return;
 
@@ -66,6 +101,11 @@ function loadRiskPreset(presetId) {
   if (statusEl) {
     statusEl.innerHTML = `Loaded archetype: <b>${escapeHtml(p.name)}</b>`;
     statusEl.style.color = 'var(--ink-dim)';
+  }
+
+  // When user selects a preset archetype, auto-evaluate so charts update live
+  if (autoEval) {
+    handleRiskEvaluation();
   }
 }
 

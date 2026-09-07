@@ -3,10 +3,26 @@
  * Displays machine learning derived rules, confidence ratings, and policy engine flowchart
  */
 
+const DEFAULT_GLOBAL_SHAP = [
+  { feature: "EXT_SOURCE_2", display_name: "External Bureau Rating 2", mean_abs_shap: 0.428, category: "Bureau", description: "Primary external credit agency predictive score" },
+  { feature: "EXT_SOURCE_3", display_name: "External Bureau Rating 3", mean_abs_shap: 0.385, category: "Bureau", description: "Secondary external credit bureau risk rating" },
+  { feature: "CREDIT_INCOME_RATIO", display_name: "Credit-to-Income Leverage", mean_abs_shap: 0.294, category: "Financial", description: "Total loan size relative to annual household income" },
+  { feature: "DAYS_EMPLOYED", display_name: "Employment Tenure", mean_abs_shap: 0.261, category: "Demographic", description: "Longevity in current occupational position" },
+  { feature: "ANNUITY_INCOME_RATIO", display_name: "Debt Service Ratio", mean_abs_shap: 0.228, category: "Financial", description: "Monthly debt installment as a share of income" },
+  { feature: "PAYMENT_RATE", display_name: "Payment Rate", mean_abs_shap: 0.197, category: "Financial", description: "Annual installment divided by total borrowed principal" },
+  { feature: "EXT_SOURCE_1", display_name: "External Bureau Rating 1", mean_abs_shap: 0.182, category: "Bureau", description: "Tertiary institutional credit score" },
+  { feature: "BUREAU_ACTIVE_LOANS", display_name: "Active Multi-Lender Lines", mean_abs_shap: 0.156, category: "Bureau", description: "Number of concurrently active loans reported by credit bureau" },
+  { feature: "PREV_APP_REFUSED_RATE", display_name: "Past Lender Refusal Rate", mean_abs_shap: 0.143, category: "Behavioral", description: "Proportion of prior loan applications rejected across all institutions" },
+  { feature: "AMT_GOODS_PRICE", display_name: "Financed Asset Value", mean_abs_shap: 0.125, category: "Financial", description: "Market value of consumer durable goods being financed" }
+];
+
 let currentRuleFilter = 'all';
 
 async function initRulesPage(filter = 'all') {
   currentRuleFilter = filter;
+  // Preload global feature importance chart immediately so canvas is never blank
+  setTimeout(() => { renderGlobalShapChart(DEFAULT_GLOBAL_SHAP); }, 40);
+
   try {
     const data = await api.getDecisionRules(filter);
 
