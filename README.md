@@ -1,4 +1,4 @@
-# CreditLens AI-Powered Credit Risk Intelligence Platform
+# CreditLens AI-Powered Credit Risk Intelligence Platform (Link: https://creditlens-credit-risk-platform.onrender.com/?page=scoring)
 
 > **Enterprise-grade credit scoring, explainable underwriting (SHAP), automated policy rule derivation, and natural-language portfolio analysis powered by FastAPI, LightGBM, and Groq LLM.**
 
