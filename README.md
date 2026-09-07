@@ -13,7 +13,7 @@
 [![Docker](https://img.shields.io/badge/Deployment-Docker%20%2B%20Compose-2496ED.svg)](https://www.docker.com/)
 
 ---
-## 0. Deployed Link
+## Deployed Link
 
 **Link:** https://creditlens-credit-risk-platform.onrender.com/?page=scoring
 
