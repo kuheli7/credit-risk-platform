@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: creditlens-credit-risk-platform
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: oregon
+    branch: main
+    autoDeploy: true
+    healthCheckPath: /api/health
+    envVars:
+      - key: PORT
+        value: 8000
+      - key: DATA_DOWNLOAD_URL
+        value: https://github.com/kuheli7/credit-risk-platform/releases/download/v1.0.0/credit_risk_db.zip
+      - key: DB_PATH
+        value: /app/data/credit_risk.db
+      - key: DATA_DIR
+        value: /app/data
+      - key: MODEL_DIR
+        value: /app/models
+      - key: IS_DOCKER
+        value: "true"
+      - key: GROQ_API_KEY
+        sync: false
