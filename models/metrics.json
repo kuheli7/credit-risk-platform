@@ -1,0 +1,9 @@
+{
+  "cv_folds": 5,
+  "cv_mean_roc_auc": 0.7301963201011897,
+  "cv_mean_pr_auc": 0.22620983480270804,
+  "test_roc_auc": 0.7284804599952712,
+  "test_pr_auc": 0.23302762044035283,
+  "n_features": 144,
+  "scale_pos_weight": 11.5
+}

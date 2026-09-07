@@ -1,0 +1,300 @@
+/* ==============================================================================
+   NeoStats Credit Risk Intelligence Platform - Unified Design System
+   Enterprise FinTech Theme (Dual-Mode: Dark Slate & Crisp Light)
+   ============================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+/* Default (Dark Theme) Variables */
+:root, [data-theme="dark"] {
+  --bg-primary: #090d16;
+  --bg-secondary: #111827;
+  --bg-card: rgba(17, 24, 39, 0.72);
+  --bg-card-hover: rgba(26, 36, 56, 0.85);
+  --border-glass: rgba(255, 255, 255, 0.08);
+  --border-accent: rgba(59, 130, 246, 0.4);
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --accent-blue: #3b82f6;
+  --accent-cyan: #06b6d4;
+  --accent-emerald: #10b981;
+  --accent-amber: #f59e0b;
+  --accent-rose: #f43f5e;
+  --shadow-glow: 0 10px 30px -5px rgba(0, 0, 0, 0.45);
+  --shadow-card: 0 4px 20px 0 rgba(0, 0, 0, 0.3);
+  --hero-gradient: linear-gradient(135deg, rgba(30, 58, 138, 0.35) 0%, rgba(15, 23, 42, 0.75) 100%);
+  --sidebar-bg: #0d121f;
+  --input-bg: rgba(15, 23, 42, 0.6);
+}
+
+/* Light Theme Variables (Stripe / Linear FinTech) */
+[data-theme="light"] {
+  --bg-primary: #f8fafc;
+  --bg-secondary: #ffffff;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f1f5f9;
+  --border-glass: rgba(226, 232, 240, 0.9);
+  --border-accent: rgba(37, 99, 235, 0.35);
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  --accent-blue: #2563eb;
+  --accent-cyan: #0891b2;
+  --accent-emerald: #059669;
+  --accent-amber: #d97706;
+  --accent-rose: #e11d48;
+  --shadow-glow: 0 10px 25px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.03);
+  --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.06), 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+  --hero-gradient: linear-gradient(135deg, rgba(239, 246, 255, 0.95) 0%, rgba(240, 253, 250, 0.9) 100%);
+  --sidebar-bg: #f1f5f9;
+  --input-bg: #ffffff;
+}
+
+/* Global Transition & Typography */
+html, body, [class*="css"], .stApp {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+/* Streamlit Header & Sidebar Container Styling */
+header[data-testid="stHeader"] {
+  background-color: transparent !important;
+}
+
+section[data-testid="stSidebar"] {
+  background-color: var(--sidebar-bg) !important;
+  border-right: 1px solid var(--border-glass) !important;
+  transition: background-color 0.25s ease;
+}
+
+/* Page Entry Fade-In Animation */
+.main .block-container {
+  animation: fadeInUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  max-width: 1280px;
+  padding-top: 2rem;
+  padding-bottom: 3rem;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Code & Pre Blocks */
+code, pre, .stCodeBlock {
+  font-family: 'JetBrains Mono', monospace !important;
+}
+
+/* Glass & Surface Card Containers */
+.glass-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-glass);
+  border-radius: 14px;
+  padding: 24px;
+  box-shadow: var(--shadow-card);
+  margin-bottom: 18px;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.25s ease;
+}
+
+.glass-card:hover {
+  border-color: var(--border-accent);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-glow);
+}
+
+/* Stat Metric Boxes */
+.stat-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border-glass);
+  border-radius: 14px;
+  padding: 20px 22px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-card);
+  transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.25s ease;
+}
+
+.stat-box:hover {
+  border-color: var(--border-accent);
+  transform: translateY(-2px);
+}
+
+.stat-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.stat-val {
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-top: 6px;
+  letter-spacing: -0.02em;
+}
+
+.stat-subtext {
+  font-size: 0.8rem;
+  color: var(--accent-emerald);
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+/* Status Badges */
+.badge-low {
+  background: rgba(16, 185, 129, 0.12);
+  color: var(--accent-emerald);
+  border: 1px solid rgba(16, 185, 129, 0.28);
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-weight: 600;
+  font-size: 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.badge-medium {
+  background: rgba(245, 158, 11, 0.12);
+  color: var(--accent-amber);
+  border: 1px solid rgba(245, 158, 11, 0.28);
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-weight: 600;
+  font-size: 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.badge-high {
+  background: rgba(244, 63, 94, 0.12);
+  color: var(--accent-rose);
+  border: 1px solid rgba(244, 63, 94, 0.28);
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-weight: 600;
+  font-size: 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.badge-neutral {
+  background: rgba(148, 163, 184, 0.12);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-glass);
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-weight: 600;
+  font-size: 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Hero Banner */
+.hero-banner {
+  background: var(--hero-gradient);
+  border: 1px solid var(--border-accent);
+  border-radius: 16px;
+  padding: 28px 32px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-card);
+  transition: all 0.25s ease;
+}
+
+.hero-title {
+  font-size: 2.1rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+  letter-spacing: -0.02em;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.hero-subtitle {
+  font-size: 1.02rem;
+  color: var(--text-secondary);
+  max-width: 840px;
+  line-height: 1.6;
+}
+
+/* Custom Streamlit Form Elements in Dual Theme */
+div[data-baseweb="input"], div[data-baseweb="select"] {
+  border-radius: 10px !important;
+  background-color: var(--input-bg) !important;
+  border-color: var(--border-glass) !important;
+}
+
+div[data-baseweb="tab-list"] {
+  gap: 8px;
+  border-bottom: 1px solid var(--border-glass) !important;
+  margin-bottom: 16px;
+}
+
+button[data-baseweb="tab"] {
+  border-radius: 8px 8px 0 0 !important;
+  font-weight: 600 !important;
+  color: var(--text-secondary) !important;
+}
+
+button[data-baseweb="tab"][aria-selected="true"] {
+  color: var(--accent-blue) !important;
+  border-bottom: 2px solid var(--accent-blue) !important;
+}
+
+/* Streamlit Button Overrides */
+.stButton > button {
+  border-radius: 10px !important;
+  font-weight: 600 !important;
+  transition: all 0.2s ease !important;
+}
+
+button[kind="primary"] {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+  border: 1px solid #3b82f6 !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3) !important;
+}
+
+button[kind="primary"]:hover {
+  background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%) !important;
+  border-color: #60a5fa !important;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.45) !important;
+}
+
+button[kind="secondary"] {
+  background-color: var(--bg-card) !important;
+  border: 1px solid var(--border-glass) !important;
+  color: var(--text-secondary) !important;
+}
+
+button[kind="secondary"]:hover {
+  border-color: var(--border-accent) !important;
+  color: var(--text-primary) !important;
+  transform: translateY(-1px);
+}
+
+
+/* Table Polish */
+.stDataFrame {
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border-glass);
+}

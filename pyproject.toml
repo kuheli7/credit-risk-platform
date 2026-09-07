@@ -1,0 +1,34 @@
+[project]
+name = "credit-risk-platform"
+version = "0.1.0"
+description = "AI-Powered Credit Risk Intelligence Platform — NeoStats Assignment"
+readme = "README.md"
+authors = [
+    { name = "Kuheli Begum", email = "kuheli350@gmail.com" }
+]
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.141.1",
+    "fpdf2>=2.8.8",
+    "groq>=1.7.0",
+    "joblib>=1.6.0",
+    "lightgbm>=4.7.0",
+    "matplotlib>=3.11.1",
+    "numpy>=2.4.6",
+    "pandas>=3.0.5",
+    "plotly>=7.0.0",
+    "python-dotenv>=1.2.3",
+    "scikit-learn>=1.9.0",
+    "seaborn>=0.13.2",
+    "shap>=0.51.0",
+    "streamlit>=1.63.0",
+    "tabulate>=0.10.0",
+    "uvicorn>=0.52.4",
+]
+
+[project.scripts]
+credit-risk-platform = "credit_risk_platform:main"
+
+[build-system]
+requires = ["uv_build>=0.12.10,<0.13.0"]
+build-backend = "uv_build"

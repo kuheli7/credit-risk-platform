@@ -1,0 +1,2057 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>NeoStats — Credit Risk Intelligence</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<!-- Chart.js CDN for lightweight, high-performance browser charts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #F4F6F3;
+    --card: #FFFFFF;
+    --ink: #12201A;
+    --ink-dim: #5C6B63;
+    --line: rgba(18,32,26,0.09);
+    --line-strong: rgba(18,32,26,0.14);
+    --green: #5FA83D;
+    --green-dark: #3C7A26;
+    --green-tint: #EAF4E2;
+    --navy: #1E241D;
+    --amber: #D99A3C;
+    --red: #B85C3E;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+  ::selection { background: rgba(95,168,61,0.25); }
+
+  /* ==========================================================================
+     FULL-SCREEN NON-SCROLLABLE HERO VIEW (SEPARATE OVERLAY)
+     ========================================================================== */
+  #hero-view {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    z-index: 1000;
+    background:
+      linear-gradient(105deg, #0A0D0A 20%, rgba(10,13,10,0.85) 45%, rgba(10,13,10,0.52) 70%, rgba(10,13,10,0.30) 100%),
+      radial-gradient(120% 140% at 78% 0%, rgba(27,42,32,0.4) 0%, rgba(10,13,10,0.2) 60%),
+      url('/assets/hero-bg.jpg') center right / cover no-repeat;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 36px 56px 40px;
+    transition: opacity 0.35s ease, visibility 0.35s ease, transform 0.35s ease;
+  }
+
+  #hero-view.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: scale(1.02);
+  }
+
+  .hero-topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .hero-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+  }
+
+  .hero-brand .mark {
+    width: 34px; height: 34px; background: var(--green);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Space Grotesk', sans-serif; font-size: 16px; color: var(--navy); font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .hero-brand .name {
+    font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 17px;
+    letter-spacing: -0.01em; color: #fff; line-height: 1.15;
+  }
+
+  .hero-brand .sub {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #8AA598; letter-spacing: 0.06em;
+  }
+
+  .hero-topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .hero-btn-console {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.18);
+    color: #F2F6F0;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 18px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .hero-btn-console:hover {
+    background: var(--green);
+    border-color: var(--green);
+    color: var(--navy);
+  }
+
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 1.08fr 0.92fr;
+    gap: 48px;
+    align-items: center;
+    width: 100%;
+    max-width: 1180px;
+    margin: auto;
+  }
+
+  .hero-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    color: #8FCB6F;
+    margin-bottom: 20px;
+  }
+
+  h1.hero2 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    font-size: 52px;
+    line-height: 1.04;
+    color: #F2F6F0;
+    margin: 0 0 20px;
+  }
+  h1.hero2 .accent { color: #77D454; }
+
+  p.hero-lede {
+    font-size: 15.5px;
+    line-height: 1.65;
+    color: #AEC0A9;
+    max-width: 480px;
+    margin: 0 0 34px;
+  }
+
+  .hero-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    background: #5FA83D;
+    color: #0F1A0C;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 14.5px;
+    padding: 14px 26px;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.2s ease, background 0.2s ease;
+  }
+  .hero-cta:hover {
+    background: #71be4d;
+    transform: translateY(-2px);
+  }
+  .hero-cta svg { width: 16px; height: 16px; transition: transform 0.2s ease; }
+  .hero-cta:hover svg { transform: translateX(3px); }
+
+  .hero-stats {
+    display: flex;
+    gap: 40px;
+    margin-top: 44px;
+  }
+  .hero-stats .s .v {
+    font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 600; color: #F2F6F0;
+  }
+  .hero-stats .s .k {
+    font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: #89A281; margin-top: 4px; letter-spacing: 0.04em;
+  }
+
+  /* Interactive Orbit diagram */
+  .orbit {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1/1;
+    max-width: 420px;
+    margin: 0 auto;
+  }
+  .orbit svg { width: 100%; height: 100%; overflow: visible; }
+  .orbit-ring { fill: none; stroke: rgba(119,212,84,0.22); stroke-width: 1; }
+  .orbit-node-bg { fill: #101B0C; stroke: rgba(119,212,84,0.5); stroke-width: 1.2; cursor: pointer; transition: all 0.2s ease; }
+  .orbit-node-bg:hover { fill: #1c3216; stroke: #77D454; }
+  .orbit-core { fill: #0F1A0C; stroke: #77D454; stroke-width: 1.4; filter: drop-shadow(0 0 14px rgba(119,212,84,0.55)); cursor: pointer; }
+  .orbit-label { font-family: 'JetBrains Mono', monospace; font-size: 9.5px; fill: #CFE4C8; letter-spacing: 0.02em; pointer-events: none; }
+  .orbit-label-core { font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 13px; fill: #F2F6F0; pointer-events: none; }
+  .orbit-link { stroke: rgba(119,212,84,0.35); stroke-width: 1; stroke-dasharray: 3 3; }
+
+  /* ==========================================================================
+     APP WORKSPACE LAYOUT (SIDEBAR + MAIN CANVAS)
+     ========================================================================== */
+  .app {
+    display: grid;
+    grid-template-columns: 250px 1fr;
+    min-height: 100vh;
+  }
+
+  /* ---------- SIDEBAR ---------- */
+  .side {
+    background: var(--navy);
+    padding: 32px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    color: #DCE4E0;
+    position: sticky;
+    top: 0;
+    align-self: start;
+    height: 100vh;
+    overflow-y: auto;
+    user-select: none;
+    z-index: 100;
+  }
+
+  .brand { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+  .brand .mark {
+    width: 34px; height: 34px; background: var(--green);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Space Grotesk', sans-serif; font-size: 16px; color: var(--navy); font-weight: 600;
+    flex-shrink: 0;
+  }
+  .brand .name {
+    font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 17px;
+    letter-spacing: -0.01em; color: #fff; line-height: 1.15;
+  }
+  .brand .sub {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #8AA598; letter-spacing: 0.06em;
+  }
+
+  .btn-return-hero {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    margin: 0 -10px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: #9FB2A9;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.15s ease;
+  }
+  .btn-return-hero:hover {
+    color: #fff;
+    background: rgba(95,168,61,0.15);
+    border-color: var(--green);
+  }
+  .btn-return-hero svg { width: 14px; height: 14px; }
+
+  nav { display: flex; flex-direction: column; }
+  .nav-label {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.14em; color: #6C8378; margin-bottom: 14px;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 10px; margin: 0 -10px;
+    color: #9FB2A9; text-decoration: none;
+    font-size: 14px; border-left: 2px solid transparent;
+    cursor: pointer;
+    transition: color .15s ease, border-color .15s ease, background .15s ease;
+  }
+  .nav-item svg { width: 16px; height: 16px; flex-shrink: 0; opacity: 0.8; }
+  .nav-item.active {
+    color: #fff; border-left-color: var(--green); background: rgba(95,168,61,0.14);
+  }
+  .nav-item.active svg { opacity: 1; stroke: var(--green); }
+  .nav-item:hover:not(.active) { color: #fff; background: rgba(255,255,255,0.04); }
+
+  .side-foot {
+    margin-top: auto; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.08);
+  }
+  .side-foot .t { font-family: 'Space Grotesk', sans-serif; font-size: 13.5px; color: #fff; }
+  .side-foot .m { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #7C9186; margin-top: 6px; letter-spacing: 0.03em; }
+
+  /* ---------- MAIN CONTENT ---------- */
+  main {
+    padding: 40px 56px 80px;
+    max-width: 1220px;
+    overflow-y: auto;
+    height: 100vh;
+  }
+
+  .topline {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding-bottom: 20px; border-bottom: 1px solid var(--line-strong); margin-bottom: 36px;
+    flex-wrap: wrap; gap: 12px;
+  }
+  .topline .crumb {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-dim); letter-spacing: 0.08em; text-transform: uppercase;
+  }
+  .status { display: flex; gap: 10px; align-items: center; }
+  .pill {
+    font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: 0.04em;
+    padding: 6px 11px; border: 1px solid var(--line-strong); color: var(--ink-dim);
+    display: flex; align-items: center; gap: 7px; background: var(--card);
+  }
+  .pill .dot {
+    width: 6px; height: 6px; background: var(--green); border-radius: 50%; box-shadow: 0 0 0 3px rgba(95,168,61,0.18);
+  }
+
+  h1.hero {
+    font-family: 'Space Grotesk', sans-serif; font-weight: 600; letter-spacing: -0.01em;
+    font-size: 44px; line-height: 1.05; max-width: 680px; margin: 0 0 16px; color: var(--navy);
+  }
+  p.lede { font-size: 15.5px; line-height: 1.6; color: var(--ink-dim); max-width: 640px; margin: 0 0 44px; }
+
+  /* metrics row */
+  .ledger {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 52px;
+  }
+  .ledger .cell {
+    padding: 22px 22px; background: var(--card); border: 1px solid var(--line);
+    border-top: 3px solid var(--green);
+  }
+  .cell .k {
+    font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--ink-dim); letter-spacing: 0.08em; margin-bottom: 12px; text-transform: uppercase;
+  }
+  .cell .v {
+    font-family: 'Space Grotesk', sans-serif; font-weight: 600; letter-spacing: -0.01em; font-size: 32px; color: var(--navy); line-height: 1;
+  }
+  .cell .d { font-family: 'JetBrains Mono', monospace; font-size: 11px; margin-top: 10px; }
+  .d.up { color: var(--green-dark); }
+  .d.neutral { color: var(--ink-dim); }
+
+  /* section header */
+  .section-head {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    margin-bottom: 22px;
+  }
+  .section-head h2 {
+    font-family: 'Space Grotesk', sans-serif; font-weight: 600; letter-spacing: -0.005em; font-size: 22px; margin: 0 0 6px; color: var(--navy);
+  }
+  .section-head p { font-size: 13.5px; color: var(--ink-dim); margin: 0; max-width: 540px; }
+  .section-head .tag {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-dim); border: 1px solid var(--line-strong); padding: 5px 10px; white-space: nowrap; background: var(--card);
+  }
+
+  /* distribution bar */
+  .dist {
+    border: 1px solid var(--line); background: var(--card); padding: 28px; margin-bottom: 48px;
+  }
+  .dist-bar {
+    display: flex; height: 46px; border: 1px solid var(--line-strong); overflow: hidden; margin: 20px 0 14px; border-radius: 3px;
+  }
+  .dist-bar .seg-good { background: var(--green); width: 91.93%; position: relative; }
+  .dist-bar .seg-bad { background: var(--red); width: 8.07%; }
+  .dist-legend { display: flex; justify-content: space-between; font-family: 'JetBrains Mono', monospace; font-size: 11.5px; }
+  .dist-legend .a { color: var(--green-dark); }
+  .dist-legend .b { color: var(--red); }
+  .dist-legend span { color: var(--ink-dim); }
+
+  /* two column layout */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1.15fr; gap: 16px; margin-bottom: 48px; }
+  .panel { padding: 30px; background: var(--card); border: 1px solid var(--line); }
+  .field { margin-bottom: 18px; }
+  .field label {
+    display: block; font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--ink-dim); letter-spacing: 0.05em; margin-bottom: 7px; text-transform: uppercase;
+  }
+  .field .val {
+    font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--navy);
+    border-bottom: 1px solid var(--line-strong); padding: 8px 2px;
+  }
+  .field input, .field select {
+    width: 100%; border: none; border-bottom: 1px solid var(--line-strong); background: transparent;
+    font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--navy); padding: 8px 2px; outline: none;
+  }
+  .field input:focus, .field select:focus {
+    border-bottom-color: var(--green);
+  }
+  .slider-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 4px;
+  }
+  .slider-row input[type="range"] {
+    flex: 1; accent-color: var(--green); cursor: pointer;
+  }
+  .slider-row span {
+    font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--green-dark); min-width: 48px; text-align: right; font-weight: 500;
+  }
+
+  /* decision block */
+  .decision-block { text-align: left; }
+  .decision-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 26px; }
+  .decision-top h3 { font-family: 'Space Grotesk', sans-serif; font-size: 19px; margin: 0; color: var(--navy); font-weight: 600; letter-spacing: -0.005em; }
+  .risk-flag {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.06em;
+    color: var(--red); border: 1px solid var(--red); padding: 5px 10px; background: #FBEEEB;
+  }
+  .risk-flag.low {
+    color: var(--green-dark); border-color: var(--green); background: var(--green-tint);
+  }
+  .risk-flag.medium {
+    color: var(--amber); border-color: var(--amber); background: #FEF6EC;
+  }
+
+  .gauge-row { display: flex; align-items: center; gap: 28px; margin-bottom: 26px; }
+  .gauge { position: relative; width: 130px; height: 130px; flex-shrink: 0; }
+  .gauge svg { transform: rotate(-90deg); }
+  .gauge .num {
+    position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  .gauge .num b { font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 26px; color: var(--navy); line-height: 1; }
+  .gauge .num small { font-family: 'JetBrains Mono', monospace; font-size: 8.5px; color: var(--ink-dim); letter-spacing: 0.05em; margin-top: 4px; text-transform: uppercase; }
+  .score-lines .row { display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 13.5px; }
+  .score-lines .row:last-child { border-bottom: none; }
+  .score-lines .row span:first-child { color: var(--ink-dim); font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+  .score-lines .row span:last-child { color: var(--navy); font-family: 'JetBrains Mono', monospace; font-weight: 500; }
+  .score-lines .row.decision span:last-child { color: var(--red); font-weight: 600; }
+  .score-lines .row.decision.approved span:last-child { color: var(--green-dark); font-weight: 600; }
+
+  .policy { margin-top: 22px; padding: 16px 18px; border-left: 3px solid var(--green); background: var(--green-tint); }
+  .policy .l { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--green-dark); letter-spacing: 0.08em; margin-bottom: 6px; }
+  .policy p { margin: 0; font-size: 13px; line-height: 1.5; color: var(--navy); }
+
+  .shap-title { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--ink-dim); letter-spacing: 0.06em; margin: 26px 0 14px; }
+  .shap-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .shap-h { font-size: 11.5px; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.03em; margin-bottom: 12px; }
+  .shap-h.g { color: var(--green-dark); }
+  .shap-h.r { color: var(--red); }
+  .shap-row { margin-bottom: 14px; }
+  .shap-row .lbl { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px; font-family: 'JetBrains Mono', monospace; }
+  .shap-row .lbl span:first-child { color: var(--navy); }
+  .shap-row .bar { height: 5px; background: var(--line-strong); position: relative; border-radius: 3px; overflow: hidden; }
+  .shap-row .bar i { position: absolute; top: 0; left: 0; height: 100%; display: block; }
+  .shap-row.g .lbl span:last-child { color: var(--green-dark); }
+  .shap-row.g .bar i { background: var(--green); }
+  .shap-row.r .lbl span:last-child { color: var(--red); }
+  .shap-row.r .bar i { background: var(--red); }
+
+  /* rules page */
+  .rules-summary { display: flex; gap: 16px; margin-bottom: 36px; }
+  .rules-summary .cell { flex: 1; padding: 22px 24px; background: var(--card); border: 1px solid var(--line); border-top: 3px solid var(--green); }
+
+  .filters { display: flex; gap: 8px; margin-bottom: 28px; }
+  .filters button {
+    font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.03em;
+    background: var(--card); border: 1px solid var(--line-strong); color: var(--ink-dim);
+    padding: 8px 16px; cursor: pointer; transition: all 0.15s ease;
+  }
+  .filters button.active { color: #fff; background: var(--green); border-color: var(--green); }
+
+  .rule { border: 1px solid var(--line); background: var(--card); padding: 26px 28px; margin-bottom: 14px; transition: border-color 0.15s ease; }
+  .rule:hover { border-color: var(--line-strong); }
+  .rule-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .rule-id { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--navy); letter-spacing: 0.03em; }
+  .rule-meta { display: flex; align-items: center; gap: 14px; }
+  .conf { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-dim); }
+  .conf b { color: var(--navy); font-weight: 500; }
+  .rule-logic {
+    font-family: 'JetBrains Mono', monospace; font-size: 13.5px; color: var(--navy);
+    background: #F6F8F5; border: 1px solid var(--line); padding: 16px 18px; margin-bottom: 16px; line-height: 1.7;
+  }
+  .rule-logic .k { color: var(--green-dark); }
+  .rule-logic .r { color: var(--red); font-weight: 500; }
+  .rule-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .rule-fields .l { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--ink-dim); letter-spacing: 0.06em; margin-bottom: 5px; text-transform: uppercase; }
+  .rule-fields p { margin: 0; font-size: 13px; line-height: 1.5; color: var(--ink-dim); }
+  .rule-fields p b { color: var(--navy); font-weight: 500; }
+
+  /* Methodology Architecture Flowchart */
+  .method-pipeline-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin-top: 14px;
+    margin-bottom: 36px;
+  }
+  @media (max-width: 1024px) {
+    .method-pipeline-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (max-width: 600px) {
+    .method-pipeline-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  .method-node {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-top: 2px solid var(--green);
+    padding: 16px 14px;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .method-node:hover {
+    transform: translateY(-2px);
+    border-color: var(--line-strong);
+    box-shadow: 0 4px 12px rgba(18,32,26,0.06);
+  }
+  .method-node-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .method-node-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    color: var(--green-dark);
+    letter-spacing: 0.05em;
+  }
+  .method-node-arrow {
+    color: var(--ink-dim);
+    font-size: 13px;
+    font-family: 'JetBrains Mono', monospace;
+    opacity: 0.7;
+  }
+  .method-node-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--navy);
+    margin-bottom: 6px;
+    line-height: 1.3;
+  }
+  .method-node-desc {
+    font-family: 'Inter', sans-serif;
+    font-size: 11.5px;
+    color: var(--ink-dim);
+    line-height: 1.45;
+  }
+
+  /* ==========================================================================
+     TALK TO DATA — FULL INTERACTIVE CHAT INTERFACE
+     ========================================================================== */
+  .talk-chat-workspace {
+    background: var(--card);
+    border: 1px solid var(--line-strong);
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 20px rgba(18, 32, 26, 0.04);
+    margin-bottom: 32px;
+  }
+  .talk-chat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 24px;
+    background: #FAFBF9;
+    border-bottom: 1px solid var(--line-strong);
+  }
+  .talk-chat-header-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .talk-chat-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #38A169;
+    box-shadow: 0 0 0 3px rgba(56, 161, 105, 0.2);
+  }
+  .talk-clear-btn {
+    background: transparent;
+    border: 1px solid var(--line-strong);
+    color: var(--ink-dim);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    padding: 5px 12px;
+    border-radius: 2px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s ease;
+  }
+  .talk-clear-btn:hover {
+    background: #FFFFFF;
+    color: var(--navy);
+    border-color: var(--navy);
+  }
+  .talk-chat-stream {
+    height: 520px;
+    overflow-y: auto;
+    padding: 24px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    background: #FAFBF9;
+    scroll-behavior: smooth;
+  }
+  .talk-chat-stream::-webkit-scrollbar {
+    width: 6px;
+  }
+  .talk-chat-stream::-webkit-scrollbar-thumb {
+    background: var(--line-strong);
+    border-radius: 3px;
+  }
+
+  /* User message bubble */
+  .talk-msg-user {
+    align-self: flex-end;
+    max-width: 82%;
+    background: var(--green-tint);
+    border: 1px solid rgba(43, 107, 72, 0.25);
+    padding: 14px 18px;
+    border-radius: 8px 8px 1px 8px;
+    box-shadow: 0 2px 6px rgba(18, 32, 26, 0.03);
+  }
+  .talk-msg-user-meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    color: var(--green-dark);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+  .talk-msg-user-text {
+    font-size: 14px;
+    color: var(--navy);
+    line-height: 1.5;
+    margin: 0;
+    font-weight: 500;
+  }
+
+  /* Bot message card */
+  .talk-msg-bot {
+    align-self: flex-start;
+    width: 100%;
+    max-width: 96%;
+    background: #FFFFFF;
+    border: 1px solid var(--line-strong);
+    padding: 20px 24px;
+    border-radius: 8px 8px 8px 1px;
+    box-shadow: 0 2px 8px rgba(18, 32, 26, 0.03);
+  }
+  .talk-msg-bot-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--line);
+  }
+  .talk-msg-bot-agent {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .talk-msg-bot-avatar {
+    width: 24px;
+    height: 24px;
+    background: var(--green);
+    color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    border-radius: 3px;
+  }
+  .talk-msg-bot-name {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--navy);
+  }
+  .talk-msg-bot-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-dim);
+    background: #F2F4F0;
+    padding: 3px 8px;
+    border-radius: 2px;
+  }
+  .talk-bot-insight {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--navy);
+    margin-bottom: 14px;
+    background: rgba(43, 107, 72, 0.05);
+    border-left: 3px solid var(--green);
+    padding: 12px 16px;
+    border-radius: 0 4px 4px 0;
+  }
+  .talk-sql-card {
+    background: #12201A;
+    border-radius: 4px;
+    padding: 14px 16px;
+    margin-bottom: 14px;
+    overflow-x: auto;
+  }
+  .talk-sql-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .talk-sql-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    color: #8FCB6F;
+    text-transform: uppercase;
+  }
+  .talk-sql-copy-btn {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: #CBD5E1;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .talk-sql-copy-btn:hover {
+    background: rgba(255,255,255,0.2);
+    color: #FFFFFF;
+  }
+  .talk-sql-code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    line-height: 1.6;
+    color: #E2E8F0;
+    white-space: pre-wrap;
+    word-break: break-all;
+    margin: 0;
+  }
+  .talk-table-wrap {
+    overflow-x: auto;
+    margin-top: 10px;
+    border: 1px solid var(--line-strong);
+    border-radius: 4px;
+  }
+  .talk-data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+  }
+  .talk-data-table th {
+    background: #F4F6F3;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    letter-spacing: 0.05em;
+    padding: 8px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--line-strong);
+  }
+  .talk-data-table td {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--line);
+    color: var(--navy);
+  }
+  .talk-data-table tr:last-child td {
+    border-bottom: none;
+  }
+  .talk-data-table tr:hover td {
+    background: #FAFBF9;
+  }
+
+  /* Suggested Questions Ribbon (Placed directly above the prompt box!) */
+  .talk-suggestions-bar {
+    padding: 9px 20px;
+    background: #FFFFFF;
+    border-top: 1px solid var(--line-strong);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .talk-suggestions-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--ink-dim);
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+    text-transform: uppercase;
+  }
+  .talk-suggestions-list {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    overflow-x: auto;
+    white-space: nowrap;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0,0,0,0.12) transparent;
+    padding: 2px 0;
+  }
+  .talk-suggestions-list::-webkit-scrollbar {
+    height: 3px;
+  }
+  .talk-suggestions-list::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,0.15);
+    border-radius: 4px;
+  }
+  .talk-suggestions-list::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .talk-chip {
+    background: #F6F8F5;
+    border: 1px solid var(--line-strong);
+    padding: 5px 12px;
+    border-radius: 14px;
+    font-size: 11.5px;
+    color: var(--navy);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-family: 'Inter', sans-serif;
+    user-select: none;
+  }
+  .talk-chip:hover {
+    background: var(--green-tint);
+    border-color: var(--green);
+    color: var(--green-dark);
+    transform: translateY(-1px);
+  }
+
+  /* Input Container */
+  .talk-input-container {
+    padding: 14px 20px;
+    background: #FFFFFF;
+    border-top: 1px solid var(--line);
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .talk-input-field {
+    flex: 1;
+    padding: 12px 16px;
+    border: 1px solid var(--line-strong);
+    font-size: 13.5px;
+    font-family: 'Inter', sans-serif;
+    background: #FAFBF9;
+    color: var(--navy);
+    transition: all 0.15s ease;
+    border-radius: 2px;
+  }
+  .talk-input-field:focus {
+    border-color: var(--green);
+    outline: none;
+    background: #FFFFFF;
+    box-shadow: 0 0 0 2px rgba(43,107,72,0.12);
+  }
+  .talk-send-btn {
+    background: var(--navy);
+    color: #FFFFFF;
+    border: none;
+    padding: 12px 22px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    font-size: 13px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.15s ease;
+    white-space: nowrap;
+    border-radius: 2px;
+  }
+  .talk-send-btn:hover:not(:disabled) {
+    background: var(--green);
+  }
+  .talk-send-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  /* Floating AI Chat Assistant ("Agent Neo") */
+  #floating-chat-trigger {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 900;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+  }
+  .chat-trigger-bubble {
+    background: #1E241D;
+    color: #fff;
+    font-size: 12px;
+    padding: 8px 14px;
+    border: 1px solid rgba(95,168,61,0.4);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Inter', sans-serif;
+  }
+  .chat-trigger-btn {
+    width: 52px;
+    height: 52px;
+    background: var(--navy);
+    border: 2px solid var(--green);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 6px 20px rgba(95,168,61,0.3);
+    position: relative;
+    transition: transform 0.2s ease;
+  }
+  .chat-trigger-btn:hover { transform: scale(1.08); }
+  .chat-trigger-btn img { width: 34px; height: 34px; border-radius: 50%; }
+  .chat-trigger-online-dot {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    width: 10px;
+    height: 10px;
+    background: #77D454;
+    border: 2px solid var(--navy);
+    border-radius: 50%;
+  }
+
+  #floating-chat-modal {
+    position: fixed;
+    bottom: 88px;
+    right: 24px;
+    width: 420px;
+    height: 560px;
+    background: var(--card);
+    border: 1px solid var(--line-strong);
+    box-shadow: 0 16px 48px rgba(18,32,26,0.18);
+    z-index: 910;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+  #floating-chat-modal.closed {
+    display: none;
+  }
+  .floating-chat-header {
+    background: var(--navy);
+    color: #fff;
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .floating-chat-agent { display: flex; align-items: center; gap: 10px; }
+  .floating-chat-agent img { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--green); }
+  .floating-chat-agent .name { font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 15px; }
+  .floating-chat-agent .status { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #8FCB6F; }
+  .floating-chat-actions { display: flex; align-items: center; gap: 6px; }
+  .chat-ctrl-btn {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.15s ease;
+    padding: 0;
+  }
+  .chat-ctrl-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+  }
+  .floating-chat-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    background: #F9FAF8;
+  }
+  .f-msg { display: flex; flex-direction: column; max-width: 88%; }
+  .f-msg.bot { align-self: flex-start; }
+  .f-msg.user { align-self: flex-end; }
+  .f-msg .bubble {
+    padding: 12px 16px;
+    font-size: 13.5px;
+    line-height: 1.55;
+    background: var(--card);
+    border: 1px solid var(--line);
+    color: var(--navy);
+  }
+  .f-msg.user .bubble {
+    background: var(--navy);
+    color: #fff;
+    border-color: var(--navy);
+  }
+  .f-msg-time {
+    font-family: 'JetBrains Mono', monospace; font-size: 9.5px; color: var(--ink-dim); margin-top: 4px;
+  }
+  .f-quick-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+  }
+  .f-pill {
+    background: #eef6eb;
+    border: 1px solid #c2e0b6;
+    color: #245717;
+    font-size: 11.5px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 12px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.15s ease;
+  }
+  .f-pill:hover {
+    background: var(--green);
+    border-color: var(--green);
+    color: var(--navy);
+    transform: translateY(-1px);
+  }
+  .floating-chat-footer {
+    padding: 14px 18px;
+    border-top: 1px solid var(--line);
+    background: var(--card);
+  }
+  .f-input-row { display: flex; gap: 8px; }
+  .f-input-row input {
+    flex: 1; padding: 10px 14px; border: 1px solid var(--line-strong); background: #FAFBFA;
+    font-family: 'Inter', sans-serif; font-size: 13px; color: var(--navy); outline: none;
+  }
+  .f-input-row input:focus { border-color: var(--green); }
+  .f-send-btn {
+    background: var(--green); border: none; color: var(--navy); padding: 0 16px; cursor: pointer; font-weight: 600;
+  }
+
+  @media (max-width: 880px) {
+    .app { grid-template-columns: 1fr; }
+    .side { display: none; }
+    main { padding: 28px 20px 60px; }
+    h1.hero { font-size: 32px; }
+    .ledger { grid-template-columns: 1fr 1fr; }
+    .grid-2 { grid-template-columns: 1fr; }
+    .shap-cols { grid-template-columns: 1fr; }
+    .rule-fields { grid-template-columns: 1fr; }
+    .rules-summary { flex-direction: column; }
+    #floating-chat-modal { width: calc(100vw - 32px); right: 16px; bottom: 80px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ==========================================================================
+     1. SEPARATE FULL-SCREEN HERO LANDING PAGE
+     ========================================================================== -->
+<div id="hero-view">
+  <header class="hero-topbar">
+    <div class="hero-brand">
+      <div class="mark">N</div>
+      <div>
+        <div class="name">Neostats</div>
+        <div class="sub">CREDIT RISK PLATFORM</div>
+      </div>
+    </div>
+    <div class="hero-topbar-actions">
+      <div class="pill" style="border-color: rgba(95,168,61,0.4); background: rgba(16,27,12,0.8); color: #cfe4c8;">
+        <span class="dot"></span>
+        <span>RISK INTELLIGENCE · LIVE</span>
+      </div>
+      <button id="btn-hero-launch" class="hero-btn-console">
+        Launch Console &rarr;
+      </button>
+    </div>
+  </header>
+
+  <div class="hero-grid">
+    <div>
+      <div class="hero-eyebrow">AI-POWERED CREDIT RISK INTELLIGENCE</div>
+      <h1 class="hero2">
+        From data to decisions,<br><span class="accent">with intelligence.</span>
+      </h1>
+      <p class="hero-lede">
+        Explainable underwriting for a more inclusive, transparent, and resilient credit portfolio — scored, ranked, and narrated in plain English.
+      </p>
+      <button id="btn-hero-explore" class="hero-cta">
+        <span>Explore the platform</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </button>
+      <div class="hero-stats">
+        <div class="s"><div class="v">0.728</div><div class="k">MODEL ROC-AUC</div></div>
+        <div class="s"><div class="v">144</div><div class="k">ENGINEERED FEATURES</div></div>
+        <div class="s"><div class="v">307,511</div><div class="k">APPLICANTS SCORED</div></div>
+      </div>
+    </div>
+
+    <!-- Interactive SVG Orbit Diagram -->
+    <div class="orbit">
+      <svg viewBox="0 0 400 400">
+        <circle class="orbit-ring" cx="200" cy="200" r="170"/>
+        <circle class="orbit-ring" cx="200" cy="200" r="120"/>
+
+        <line class="orbit-link" x1="200" y1="200" x2="200" y2="30"/>
+        <line class="orbit-link" x1="200" y1="200" x2="360" y2="130"/>
+        <line class="orbit-link" x1="200" y1="200" x2="330" y2="320"/>
+        <line class="orbit-link" x1="200" y1="200" x2="70" y2="320"/>
+        <line class="orbit-link" x1="200" y1="200" x2="40" y2="130"/>
+
+        <!-- Core Risk Engine -->
+        <circle class="orbit-core" id="orbit-core-btn" cx="200" cy="200" r="46"/>
+        <text class="orbit-label-core" x="200" y="196" text-anchor="middle">Risk</text>
+        <text class="orbit-label-core" x="200" y="214" text-anchor="middle">Engine</text>
+
+        <!-- Node 1: Data Intake -->
+        <g class="orbit-node-interactive" data-nav="eda">
+          <circle class="orbit-node-bg" cx="200" cy="30" r="30"/>
+          <text class="orbit-label" x="200" y="27" text-anchor="middle">DATA</text>
+          <text class="orbit-label" x="200" y="39" text-anchor="middle">INTAKE</text>
+        </g>
+
+        <!-- Node 2: Feature Eng -->
+        <g class="orbit-node-interactive" data-nav="eda">
+          <circle class="orbit-node-bg" cx="360" cy="130" r="30"/>
+          <text class="orbit-label" x="360" y="127" text-anchor="middle">FEATURE</text>
+          <text class="orbit-label" x="360" y="139" text-anchor="middle">ENG.</text>
+        </g>
+
+        <!-- Node 3: SHAP Explain -->
+        <g class="orbit-node-interactive" data-nav="scoring">
+          <circle class="orbit-node-bg" cx="330" cy="320" r="30"/>
+          <text class="orbit-label" x="330" y="317" text-anchor="middle">SHAP</text>
+          <text class="orbit-label" x="330" y="329" text-anchor="middle">EXPLAIN</text>
+        </g>
+
+        <!-- Node 4: Policy Rules -->
+        <g class="orbit-node-interactive" data-nav="rules">
+          <circle class="orbit-node-bg" cx="70" cy="320" r="30"/>
+          <text class="orbit-label" x="70" y="317" text-anchor="middle">POLICY</text>
+          <text class="orbit-label" x="70" y="329" text-anchor="middle">RULES</text>
+        </g>
+
+        <!-- Node 5: Talk to Data -->
+        <g class="orbit-node-interactive" data-nav="talk">
+          <circle class="orbit-node-bg" cx="40" cy="130" r="30"/>
+          <text class="orbit-label" x="40" y="127" text-anchor="middle">TALK TO</text>
+          <text class="orbit-label" x="40" y="139" text-anchor="middle">DATA</text>
+        </g>
+      </svg>
+    </div>
+  </div>
+
+  <div style="text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #627c6a; letter-spacing: 0.08em;">
+    KAGGLE HOME CREDIT BENCHMARK · LIGHTGBM · SHAP · GROQ LLM
+  </div>
+</div>
+
+<!-- ==========================================================================
+     2. ENTERPRISE PLATFORM WORKSPACE
+     ========================================================================== -->
+<div class="app">
+
+  <!-- Left Sidebar -->
+  <aside class="side">
+    <div>
+      <div class="brand" id="sidebar-brand-btn" title="Return to Hero Landing">
+        <div class="mark">N</div>
+        <div>
+          <div class="name">Neostats</div>
+          <div class="sub">RISK INTELLIGENCE</div>
+        </div>
+      </div>
+
+      <a id="btn-return-hero" class="btn-return-hero" style="margin-top: 14px;" title="Return to Hero Landing">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        <span>&larr; Hero Landing</span>
+      </a>
+    </div>
+
+    <nav>
+      <div class="nav-label">NAVIGATION</div>
+      <a class="nav-item active" data-page="overview">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="8" height="8"/><rect x="13" y="3" width="8" height="8"/><rect x="3" y="13" width="8" height="8"/><rect x="13" y="13" width="8" height="8"/></svg>
+        <span>Overview</span>
+      </a>
+      <a class="nav-item" data-page="eda">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 20V10M10 20V4M17 20v-7"/></svg>
+        <span>EDA &amp; Insights</span>
+      </a>
+      <a class="nav-item" data-page="scoring">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 2 3 14h8l-1 8 10-12h-8l1-8z"/></svg>
+        <span>Risk Scoring</span>
+      </a>
+      <a class="nav-item" data-page="rules">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6"/></svg>
+        <span>Decision Rules</span>
+      </a>
+      <a class="nav-item" data-page="talk">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V6a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/></svg>
+        <span>Talk to Data</span>
+      </a>
+    </nav>
+
+    <div class="side-foot">
+      <div class="t">AI Credit Risk Intelligence</div>
+      <div class="m">LIGHTGBM · SHAP · GROQ</div>
+    </div>
+  </aside>
+
+  <!-- Main Canvas -->
+  <main>
+
+    <!-- ============ PAGE 1: OVERVIEW ============ -->
+    <div class="page" id="page-overview">
+      <div class="topline">
+        <div class="crumb">PORTFOLIO OVERVIEW / EXECUTIVE INTELLIGENCE</div>
+        <div class="status">
+          <div class="pill"><span class="dot"></span>RISK INTELLIGENCE · LIVE</div>
+          <div class="pill">GBDT v1.0 · 144 FEATURES</div>
+        </div>
+      </div>
+
+      <h1 class="hero">Credit risk, read like a rating report.</h1>
+      <p class="lede">Enterprise-grade scoring, SHAP-explained underwriting, and auto-derived decision rules — built on 307,511 applicant records and narrated by a language model that answers in plain English.</p>
+
+      <div class="ledger">
+        <div class="cell">
+          <div class="k">MODEL ROC-AUC</div>
+          <div class="v" id="kpi-roc">0.728</div>
+          <div class="d up">+26.2% over baseline</div>
+        </div>
+        <div class="cell">
+          <div class="k">PR-AUC, IMBALANCE-ADJUSTED</div>
+          <div class="v" id="kpi-pr">0.233</div>
+          <div class="d neutral">Scale pos. weight 11.5×</div>
+        </div>
+        <div class="cell">
+          <div class="k">ENGINEERED FEATURES</div>
+          <div class="v" id="kpi-features">144</div>
+          <div class="d neutral">Joined across 3 tables</div>
+        </div>
+        <div class="cell">
+          <div class="k">TALK-TO-DATA ENGINE</div>
+          <div class="v" id="kpi-engine" style="font-size: 24px;">Groq LLM</div>
+          <div class="d neutral">Natural language → SQL</div>
+        </div>
+      </div>
+
+      <div class="section-head">
+        <div>
+          <h2>Portfolio default risk distribution</h2>
+          <p>Kaggle Home Credit benchmark — every applicant on file, sorted by outcome.</p>
+        </div>
+        <div class="tag">307,511 APPLICANTS</div>
+      </div>
+      <div class="dist">
+        <div class="dist-bar"><div class="seg-good"></div><div class="seg-bad"></div></div>
+        <div class="dist-legend">
+          <div class="a">91.93% <span>— solvent, non-defaulters (282,686)</span></div>
+          <div class="b">8.07% <span>— payment delinquent (24,825)</span></div>
+        </div>
+      </div>
+
+      <div class="section-head" style="margin-top: 48px;">
+        <div>
+          <h2>Strategic Business Findings</h2>
+          <p>Empirical credit risk drivers extracted from demographic, occupational, bureau, and previous application records.</p>
+        </div>
+      </div>
+      <div id="overview-insights-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
+        <!-- Populated dynamically by overview.js -->
+      </div>
+
+      <!-- Overview Footer CTA -->
+      <div id="overview-footer-cta" style="margin-top: 48px; padding: 28px 32px; background: var(--navy); display: flex; justify-content: space-between; align-items: center; gap: 24px;">
+        <div>
+          <div style="font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:700; letter-spacing:0.1em; color:var(--green); margin-bottom:6px;">NEXT STEP</div>
+          <div style="font-family:'Space Grotesk',sans-serif; font-size:18px; font-weight:600; color:#fff; margin-bottom:4px;">Score an applicant or interrogate the portfolio</div>
+          <div style="font-size:12.5px; color:rgba(255,255,255,0.55); font-family:'JetBrains Mono',monospace;">LightGBM · SHAP · 307k records · Groq NL→SQL</div>
+        </div>
+        <div style="display:flex; gap:12px; flex-shrink:0;">
+          <button onclick="switchPage('scoring')" style="padding:10px 22px; background:var(--green); color:#fff; border:none; font-family:'JetBrains Mono',monospace; font-size:11.5px; font-weight:700; letter-spacing:0.05em; cursor:pointer;">→ SCORE APPLICANT</button>
+          <button onclick="switchPage('talk')" style="padding:10px 22px; background:transparent; color:var(--green); border:1px solid var(--green); font-family:'JetBrains Mono',monospace; font-size:11.5px; font-weight:700; letter-spacing:0.05em; cursor:pointer;">→ TALK TO DATA</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ PAGE 2: EDA & INSIGHTS ============ -->
+    <div class="page" id="page-eda" style="display:none;">
+      <div class="topline">
+        <div class="crumb">EDA &amp; BUSINESS INSIGHTS</div>
+        <div class="status">
+          <div class="pill"><span class="dot"></span>DATASET: HOME CREDIT DEFAULT RISK</div>
+        </div>
+      </div>
+
+      <h1 class="hero" style="font-size:36px;">Understand the data. Discover the patterns.</h1>
+      <p class="lede">Empirical drivers pulled from demographic, occupational, bureau, and previous-application records.</p>
+
+      <div class="ledger" style="grid-template-columns:repeat(3,1fr);">
+        <div class="cell">
+          <div class="k">CASH LOANS SHOW HIGHER DEFAULT RISK</div>
+          <div class="v" style="font-size:26px;">8.35%</div>
+          <div class="d neutral">Cash loan default rate</div>
+        </div>
+        <div class="cell">
+          <div class="k">LOWER EXTERNAL SCORE INCREASES RISK</div>
+          <div class="v" style="font-size:26px;">3.2×</div>
+          <div class="d neutral">Higher default rate for EXT_SOURCE_2 &lt; 0.3</div>
+        </div>
+        <div class="cell">
+          <div class="k">HIGHER DEBT-TO-INCOME SIGNALS DISTRESS</div>
+          <div class="v" style="font-size:26px;">12.6%</div>
+          <div class="d neutral">Default rate for DTI &gt; 4.0</div>
+        </div>
+      </div>
+
+      <!-- Interactive Findings with Visual Charts -->
+      <div class="section-head">
+        <div>
+          <h2>Default rate by loan type</h2>
+          <p>Cash loans carry meaningfully more default risk than revolving credit.</p>
+        </div>
+      </div>
+      <div class="dist" style="padding: 44px 36px 28px;">
+        <div style="display:flex;align-items:flex-end;gap:56px;height:100px;padding:0 24px 0;">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:12.5px;color:var(--navy);font-weight:500;">8.35%</div>
+            <div style="width:64px;height:56px;background:var(--green);border-radius:2px 2px 0 0;"></div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:12.5px;color:var(--navy);font-weight:500;">5.40%</div>
+            <div style="width:64px;height:36px;background:#8AA9CE;border-radius:2px 2px 0 0;"></div>
+          </div>
+        </div>
+        <div style="width: 260px; height: 1px; background: var(--line-strong); margin: 0 0 10px 0;"></div>
+        <div style="display:flex;gap:56px;padding:0 24px;">
+          <div style="width:64px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-dim);">Cash loans</div>
+          <div style="width:64px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-dim);">Revolving loans</div>
+        </div>
+      </div>
+
+      <!-- 6 Strategic Empirical Drivers (NeoStats Assignment Requirement) -->
+      <div class="section-head" style="margin-top: 48px;">
+        <div>
+          <h2>Empirical Risk Drivers (6 Assignment Dimensions)</h2>
+          <p>Deep-dive across loan types, occupations, bureau scores, leverage, refusals, and age demographics.</p>
+        </div>
+      </div>
+      <div id="eda-insights-container">
+        <!-- Populated dynamically by eda.js with interactive charts -->
+      </div>
+
+      <!-- Missing Value Audit & Strategy -->
+      <div class="section-head" style="margin-top:44px;">
+        <div>
+          <h2>Missing value audit &amp; strategy</h2>
+          <p>Handling missingness as an informative signal rather than discarding data.</p>
+        </div>
+      </div>
+      <div class="rule">
+        <div class="rule-fields" style="grid-template-columns:1fr 1fr 2fr;">
+          <div><div class="l">FEATURE</div><p><b>EXT_SOURCE_1</b></p></div>
+          <div><div class="l">MISSING</div><p><b style="color:var(--red);">56.4%</b></p></div>
+          <div><div class="l">STRATEGY</div><p>Median imputation with a missingness indicator to preserve informative bureau sparsity.</p></div>
+        </div>
+      </div>
+      <div class="rule">
+        <div class="rule-fields" style="grid-template-columns:1fr 1fr 2fr;">
+          <div><div class="l">FEATURE</div><p><b>OWN_CAR_AGE</b></p></div>
+          <div><div class="l">MISSING</div><p><b style="color:var(--amber);">66%</b></p></div>
+          <div><div class="l">STRATEGY</div><p>Mapped to zero for non-car owners; explicit car-owner flag retained.</p></div>
+        </div>
+      </div>
+
+      <!-- Data Anomalies & Corrections -->
+      <div class="section-head" style="margin-top:44px;">
+        <div>
+          <h2>Data Anomalies &amp; Engineering Corrections</h2>
+          <p>Sentinel values cleaned, log transforms, and ratio calculations.</p>
+        </div>
+      </div>
+      <div class="rule">
+        <div class="rule-fields" style="grid-template-columns:1fr 1.5fr 2fr;">
+          <div><div class="l">ANOMALY</div><p><b style="color:var(--red);">DAYS_EMPLOYED = 365,243</b></p></div>
+          <div><div class="l">ROOT CAUSE</div><p>Pensioner sentinel value representing 1,000 years.</p></div>
+          <div><div class="l">ENGINEERING SOLUTION</div><p>Replaced with NaN, imputed with zero, and preserved with <code>DAYS_EMPLOYED_ANOM</code> indicator flag.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ PAGE 3: RISK SCORING ============ -->
+    <div class="page" id="page-scoring" style="display:none;">
+      <div class="topline">
+        <div class="crumb">APPLICANT RISK ASSESSMENT / SHAP UNDERWRITING</div>
+        <div class="status">
+          <div class="pill"><span class="dot"></span>RISK INTELLIGENCE · LIVE</div>
+        </div>
+      </div>
+
+      <div class="section-head">
+        <div>
+          <h2>Applicant risk assessment</h2>
+          <p>Live default-probability inference against saved archetypes, with directional SHAP attribution.</p>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink-dim);">PRESET:</span>
+          <select id="risk-preset-select" style="font-family:'JetBrains Mono',monospace; font-size:11px; padding: 4px 8px; border: 1px solid var(--line-strong); background: var(--card);">
+            <!-- Populated dynamically -->
+          </select>
+        </div>
+      </div>
+
+      <!-- Direct Portfolio Database Lookup -->
+      <div style="background:var(--card); border:1px solid var(--line-strong); border-radius:4px; padding:12px 18px; margin-bottom:18px; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:12px;">
+        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+          <span style="font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700; color:var(--navy); text-transform:uppercase;">Historical Portfolio Lookup:</span>
+          <input type="number" id="risk-lookup-id" placeholder="SK_ID_CURR (e.g. 100002)" style="font-family:'JetBrains Mono',monospace; font-size:12px; padding:5px 10px; border:1px solid var(--line-strong); border-radius:3px; width:190px;" />
+          <button type="button" id="btn-risk-lookup" style="background:var(--green); color:#0F1A0C; font-family:'Space Grotesk',sans-serif; font-size:12px; font-weight:600; padding:6px 14px; border:none; border-radius:3px; cursor:pointer;" onclick="if(window.lookupAndLoadApplicant){ window.lookupAndLoadApplicant(document.getElementById('risk-lookup-id').value); }">Lookup &amp; Load</button>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span style="font-family:'JetBrains Mono',monospace; font-size:10.5px; color:var(--ink-dim);">Try verified samples:</span>
+            <button type="button" class="talk-chip" style="cursor:pointer; font-size:10.5px; padding:3px 8px;" onclick="document.getElementById('risk-lookup-id').value=100002; window.lookupAndLoadApplicant(100002);">100002 (Defaulter)</button>
+            <button type="button" class="talk-chip" style="cursor:pointer; font-size:10.5px; padding:3px 8px;" onclick="document.getElementById('risk-lookup-id').value=100003; window.lookupAndLoadApplicant(100003);">100003 (Repaid)</button>
+            <button type="button" class="talk-chip" style="cursor:pointer; font-size:10.5px; padding:3px 8px;" onclick="document.getElementById('risk-lookup-id').value=100031; window.lookupAndLoadApplicant(100031);">100031 (Defaulter)</button>
+          </div>
+        </div>
+        <div id="risk-lookup-status" style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink-dim);">
+          Ready to evaluate preset archetype or database record
+        </div>
+      </div>
+
+      <!-- Top Panel: All Metrics on One Screen in 3 Clean Columns -->
+      <form id="risk-evaluation-form" class="panel" style="margin-bottom: 32px; padding: 28px 32px 24px;">
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; margin-bottom: 24px;">
+          
+          <!-- Column 1: Financial Solvency & Loan Specs -->
+          <div>
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line-strong);">
+              <span class="pill" style="font-size: 9.5px;">FINANCIAL SOLVENCY</span>
+              <span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink-dim);">LOAN SPECS</span>
+            </div>
+            <div class="field">
+              <label>ANNUAL INCOME ($)</label>
+              <input type="number" id="input-income" value="90000" min="0" step="any" required>
+            </div>
+            <div class="field">
+              <label>REQUESTED CREDIT ($)</label>
+              <input type="number" id="input-credit" value="650000" min="0" step="any" required>
+            </div>
+            <div class="field">
+              <label>ANNUAL ANNUITY ($)</label>
+              <input type="number" id="input-annuity" value="35000" min="0" step="any" required>
+            </div>
+            <div class="field">
+              <label>GOODS PRICE ($)</label>
+              <input type="number" id="input-goods-price" value="580000" min="0" step="any" required>
+            </div>
+            <div class="field">
+              <label>CONTRACT TYPE</label>
+              <select id="input-contract-type">
+                <option value="Cash loans">Cash loans</option>
+                <option value="Revolving loans">Revolving loans</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Column 2: Demographic Profile & Career -->
+          <div>
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line-strong);">
+              <span class="pill" style="font-size: 9.5px;">DEMOGRAPHICS</span>
+              <span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink-dim);">STABILITY</span>
+            </div>
+            <div class="field">
+              <label>GENDER</label>
+              <select id="input-gender">
+                <option value="M">Male</option>
+                <option value="F">Female</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>INCOME TYPE</label>
+              <select id="input-income-type">
+                <option value="Working">Working</option>
+                <option value="Commercial associate">Commercial associate</option>
+                <option value="State servant">State servant</option>
+                <option value="Pensioner">Pensioner</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>OCCUPATION</label>
+              <select id="input-occupation">
+                <option value="Drivers">Drivers</option>
+                <option value="Laborers">Laborers</option>
+                <option value="Sales staff">Sales staff</option>
+                <option value="Managers">Managers</option>
+                <option value="Core staff">Core staff</option>
+                <option value="Accountants">Accountants</option>
+              </select>
+            </div>
+            <div class="field" style="display:none;">
+              <select id="input-education">
+                <option value="Secondary / secondary special">Secondary / secondary special</option>
+                <option value="Higher education">Higher education</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>APPLICANT AGE</label>
+              <div class="slider-row">
+                <input type="range" id="input-age" min="18" max="75" value="44">
+                <span id="val-age">44 yrs</span>
+              </div>
+            </div>
+            <div class="field">
+              <label>YEARS EMPLOYED</label>
+              <div class="slider-row">
+                <input type="range" id="input-employed" min="0" max="40" step="0.5" value="3.5">
+                <span id="val-employed">3.5 yrs</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Column 3: Bureau Scores & Historical Performance -->
+          <div>
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line-strong);">
+              <span class="pill" style="font-size: 9.5px;">BUREAU &amp; SCORES</span>
+              <span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink-dim);">CREDIT HISTORY</span>
+            </div>
+            <div class="field">
+              <label>BUREAU SCORE (EXT_SOURCE_2)</label>
+              <div class="slider-row">
+                <input type="range" id="input-ext2" min="0.01" max="0.99" step="0.01" value="0.22">
+                <span id="val-ext2">0.22</span>
+              </div>
+            </div>
+            <div class="field">
+              <label>INTERNAL SCORE (EXT_SOURCE_3)</label>
+              <div class="slider-row">
+                <input type="range" id="input-ext3" min="0.01" max="0.99" step="0.01" value="0.28">
+                <span id="val-ext3">0.28</span>
+              </div>
+            </div>
+            <div class="field">
+              <label>ACTIVE BUREAU LOANS</label>
+              <input type="number" id="input-active-loans" value="4" min="0" max="25">
+            </div>
+            <div class="field">
+              <label>PREV. APPLICATION REFUSAL RATE</label>
+              <div class="slider-row">
+                <input type="range" id="input-refused-rate" min="0" max="1" step="0.05" value="0.50">
+                <span id="val-refused-rate">50%</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <div id="risk-error-alert" style="display:none; color:var(--red); font-size:12px; margin-bottom:12px;"></div>
+
+        <!-- Action Bar with Evaluation Trigger -->
+        <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 18px; border-top: 1px solid var(--line); flex-wrap: wrap; gap: 14px;">
+          <div style="font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--ink-dim); display: flex; align-items: center; gap: 8px;">
+            <span style="display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--green);"></span>
+            All 15 empirical risk indicators active · Calibrated LightGBM model ready
+          </div>
+          <button type="submit" id="btn-evaluate-risk" class="hero-cta" style="padding: 13px 32px; font-size: 13.5px; font-weight: 600; cursor: pointer;">
+            Evaluate Credit Risk &amp; View Prediction ↓
+          </button>
+        </div>
+      </form>
+
+      <!-- Bottom Panel: Underwriting Decision & SHAP Attribution -->
+      <div id="risk-results-container" class="panel decision-block" style="scroll-margin-top: 24px;">
+        <div class="decision-top" style="padding-bottom: 18px; border-bottom: 1px solid var(--line); margin-bottom: 24px;">
+          <div>
+            <div class="pill" style="font-size: 10px; margin-bottom: 6px;">UNDERWRITING VERDICT &amp; FACTOR ATTRIBUTION</div>
+            <h3 style="font-size: 22px; margin: 0;">Underwriting Decision &amp; Risk Prediction</h3>
+          </div>
+          <div id="res-risk-badge" class="risk-flag">HIGH RISK</div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1.15fr; gap: 36px; align-items: flex-start;">
+          
+          <!-- Left Sub-column: Decision Gauge & Recommendations -->
+          <div>
+            <div class="gauge-row">
+              <div class="gauge">
+                <svg width="130" height="130" viewBox="0 0 130 130">
+                  <circle cx="65" cy="65" r="54" fill="none" stroke="rgba(18,32,26,0.10)" stroke-width="10"/>
+                  <circle id="risk-gauge-circle" cx="65" cy="65" r="54" fill="none" stroke="#C1543F" stroke-width="10" stroke-linecap="butt"
+                    stroke-dasharray="339.3" stroke-dashoffset="62"/>
+                </svg>
+                <div class="num"><b id="res-prob-val">81.67%</b></div>
+              </div>
+              <div class="score-lines" style="flex:1;">
+                <div class="row"><span>EST. CREDIT SCORE</span><span id="res-credit-score">400 / 850</span></div>
+                <div class="row"><span>DEBT LEVERAGE</span><span id="res-debt-ratio">7.22×</span></div>
+                <div class="row"><span>PAYMENT RATE</span><span id="res-payment-rate">5.38%</span></div>
+                <div class="row decision" id="res-decision-row"><span>DECISION</span><span id="res-decision">DECLINED</span></div>
+              </div>
+            </div>
+
+            <div class="policy">
+              <div class="l">POLICY RECOMMENDATION</div>
+              <p id="res-policy-action">Escalate to Special Assets &amp; Risk Committee due to high default probability; request guarantor.</p>
+            </div>
+
+            <div style="margin-top: 20px; padding: 14px 18px; background: #F6F8F5; border: 1px solid var(--line);">
+              <div class="l" style="font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--ink-dim); letter-spacing:0.08em; margin-bottom:6px;">AI UNDERWRITING NARRATIVE</div>
+              <p id="res-explanation-text" style="margin:0; font-size:13px; line-height:1.6; color:var(--navy);">
+                High default likelihood driven by external credit bureau scores below minimum risk tolerance (0.22 vs benchmark 0.50) combined with debt leverage exceeding 7.2x annual earnings.
+              </p>
+            </div>
+          </div>
+
+          <!-- Right Sub-column: SHAP Feature Attribution -->
+          <div>
+            <div class="shap-title" style="margin-top: 0;">WHY THIS DECISION — SHAP FEATURE ATTRIBUTION</div>
+            <p style="font-size: 11.5px; color: var(--ink-dim); margin: -6px 0 16px; font-family: 'JetBrains Mono', monospace;">
+              Directional impact on default probability log-odds via TreeSHAP
+            </p>
+            <div class="shap-cols">
+              <div>
+                <div class="shap-h g">RISK-REDUCING</div>
+                <div id="res-factors-reducing">
+                  <div class="shap-row g"><div class="lbl"><span>Days birth</span><span>−0.39</span></div><div class="bar"><i style="width:65%"></i></div></div>
+                  <div class="shap-row g"><div class="lbl"><span>Own car age</span><span>−0.22</span></div><div class="bar"><i style="width:37%"></i></div></div>
+                </div>
+              </div>
+              <div>
+                <div class="shap-h r">RISK-INCREASING</div>
+                <div id="res-factors-increasing">
+                  <div class="shap-row r"><div class="lbl"><span>Ext. sources mean</span><span>+1.23</span></div><div class="bar"><i style="width:100%"></i></div></div>
+                  <div class="shap-row r"><div class="lbl"><span>Payment rate</span><span>+0.27</span></div><div class="bar"><i style="width:45%"></i></div></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Model Confidence & Threshold Signals -->
+            <div id="res-model-signals" style="margin-top: 20px; padding: 16px 18px; border: 1px solid var(--line); background: #FAFBF9;">
+              <div style="font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:700; letter-spacing:0.08em; color:var(--ink-dim); margin-bottom: 14px;">MODEL CONFIDENCE &amp; THRESHOLD SIGNALS</div>
+              <div id="res-signal-rows" style="display: grid; grid-template-columns: 1fr 1fr; row-gap: 10px; column-gap: 8px;">
+                <span style="font-size:12px; color:var(--ink-dim); align-self:center;">LightGBM calibration</span>
+                <span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--navy); text-align:right;">Platt scaling · 11.5× class weight</span>
+
+                <span style="font-size:12px; color:var(--ink-dim); align-self:center;">Decision threshold</span>
+                <span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--navy); text-align:right;">≥ 35% → DECLINED</span>
+
+                <span style="font-size:12px; color:var(--ink-dim); align-self:center;">EXT_SOURCE_2 benchmark</span>
+                <span id="res-sig-ext2" style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink-dim); text-align:right;">—</span>
+
+                <span style="font-size:12px; color:var(--ink-dim); align-self:center;">Credit leverage signal</span>
+                <span id="res-sig-leverage" style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink-dim); text-align:right;">—</span>
+
+                <span style="font-size:12px; color:var(--ink-dim); align-self:center;">Refusal history signal</span>
+                <span id="res-sig-refusal" style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink-dim); text-align:right;">—</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ PAGE 4: DECISION RULES ============ -->
+    <div class="page" id="page-rules" style="display:none;">
+      <div class="topline">
+        <div class="crumb">CREDIT POLICY ENGINE / AUDITABLE RULES</div>
+        <div class="status">
+          <div class="pill"><span class="dot"></span>RISK INTELLIGENCE · LIVE</div>
+        </div>
+      </div>
+
+      <div class="section-head">
+        <div>
+          <h2>Credit policy engine</h2>
+          <p>Machine-derived decision boundaries, translated into auditable underwriting rules.</p>
+        </div>
+      </div>
+
+      <div class="rules-summary">
+        <div class="cell"><div class="k">ACTIVE RULES</div><div class="v" id="rules-count-total" style="font-size:28px;">5</div><div class="d neutral">Statistically verified</div></div>
+        <div class="cell"><div class="k">HIGH-RISK RULES</div><div class="v" id="rules-count-high" style="font-size:28px;color:var(--red);">3</div><div class="d neutral">Mandatory committee review</div></div>
+        <div class="cell"><div class="k">LOW-RISK RULES</div><div class="v" id="rules-count-low" style="font-size:28px;color:var(--green-dark);">2</div><div class="d neutral">Fast-track automated sanction</div></div>
+      </div>
+
+      <div class="filters">
+        <button class="rule-filter-btn active" data-filter="all">All rules</button>
+        <button class="rule-filter-btn" data-filter="high">High risk only</button>
+        <button class="rule-filter-btn" data-filter="low">Low risk only</button>
+      </div>
+
+      <div id="rules-list-container">
+        <!-- Rendered dynamically by rules.js -->
+        <div class="rule">
+          <div class="rule-top">
+            <div class="rule-id">CR-RULE-01</div>
+            <div class="rule-meta"><div class="conf">CONFIDENCE <b>82.4%</b></div><div class="risk-flag">HIGH RISK</div></div>
+          </div>
+          <div class="rule-logic">IF <span class="k">ext_source_2</span> &lt; 0.35 AND <span class="k">credit_income_ratio</span> &gt; 3.2 THEN <span class="r">HIGH DEFAULT RISK</span></div>
+          <div class="rule-fields">
+            <div><div class="l">BUSINESS RATIONALE</div><p>Weak external bureau score compounded by excessive debt relative to annual income.</p></div>
+            <div><div class="l">MANDATED ACTION</div><p><b>Mandatory credit committee review;</b> require guarantor or lower credit limit.</p></div>
+          </div>
+        </div>
+
+        <div class="rule">
+          <div class="rule-top">
+            <div class="rule-id">CR-RULE-02</div>
+            <div class="rule-meta"><div class="conf">CONFIDENCE <b>77.1%</b></div><div class="risk-flag">HIGH RISK</div></div>
+          </div>
+          <div class="rule-logic">IF <span class="k">prev_app_refused_rate</span> &gt; 0.40 AND <span class="k">bureau_active_loans</span> &ge; 3 THEN <span class="r">HIGH DEFAULT RISK</span></div>
+          <div class="rule-fields">
+            <div><div class="l">BUSINESS RATIONALE</div><p>High rejection history across lenders combined with high current debt burden.</p></div>
+            <div><div class="l">MANDATED ACTION</div><p><b>Decline automated approval;</b> flag for past delinquency inspection.</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Model to Policy Architecture Flowchart -->
+      <div class="section-head" style="margin-top: 40px;">
+        <div>
+          <h2>Model &rarr; SHAP &rarr; Credit Policy Architecture</h2>
+          <p>How non-linear gradient-boosted decision trees are distilled into compliance-ready credit mandates.</p>
+        </div>
+      </div>
+      <div class="method-pipeline-grid" id="rules-methodology-flow">
+        <!-- Populated dynamically by rules.js -->
+        <div class="method-node">
+          <div class="method-node-header"><span class="method-node-num">Step 01</span><span class="method-node-arrow">&rarr;</span></div>
+          <div class="method-node-title">Model Feature Splits</div>
+          <div class="method-node-desc">LightGBM identifies optimal information gain thresholds across 144 engineered features.</div>
+        </div>
+        <div class="method-node">
+          <div class="method-node-header"><span class="method-node-num">Step 02</span><span class="method-node-arrow">&rarr;</span></div>
+          <div class="method-node-title">Feature Importance &amp; SHAP</div>
+          <div class="method-node-desc">TreeSHAP quantifies global non-linear impact and directional effect on default probability.</div>
+        </div>
+        <div class="method-node">
+          <div class="method-node-header"><span class="method-node-num">Step 03</span><span class="method-node-arrow">&rarr;</span></div>
+          <div class="method-node-title">Decision Boundaries</div>
+          <div class="method-node-desc">High-confidence leaves are clustered to extract recurrent multi-variable decision paths.</div>
+        </div>
+        <div class="method-node">
+          <div class="method-node-header"><span class="method-node-num">Step 04</span><span class="method-node-arrow">&rarr;</span></div>
+          <div class="method-node-title">Business Rules</div>
+          <div class="method-node-desc">Mathematical split expressions are synthesized into human-auditable IF/THEN logical statements.</div>
+        </div>
+        <div class="method-node">
+          <div class="method-node-header"><span class="method-node-num">Step 05</span></div>
+          <div class="method-node-title">Underwriting Policy</div>
+          <div class="method-node-desc">Credit committee binds enforceable credit underwriting mandates (caps, declines, guarantor demands).</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ PAGE 5: TALK TO DATA ============ -->
+    <div class="page" id="page-talk" style="display:none;">
+      <div class="topline">
+        <div class="crumb">NEOSTATS AI ANALYST</div>
+        <div class="status">
+          <div class="pill"><span class="dot"></span>POWERED BY GROQ LLAMA 3.3 · SQLITE LIVE</div>
+        </div>
+      </div>
+
+      <div class="section-head">
+        <div>
+          <h2>Portfolio Conversational Intelligence</h2>
+          <p>Query 307,511 loan records in natural English. Generates verified SQL and provides executive takeaways.</p>
+        </div>
+      </div>
+
+      <div class="talk-chat-workspace panel" style="padding: 0; overflow: hidden;">
+        <!-- Chat Header Bar -->
+        <div class="talk-chat-header">
+          <div class="talk-chat-header-info">
+            <span class="talk-chat-status-dot"></span>
+            <span style="font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:500; color:var(--navy);">SESSION CONVERSATION THREAD</span>
+            <span style="font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--ink-dim); background:#EEF2EC; padding:2px 8px; border-radius:2px;">SQLITE PORTFOLIO</span>
+          </div>
+          <button type="button" id="talk-clear-chat-btn" class="talk-clear-btn" title="Start a fresh conversation">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            <span>Clear Chat</span>
+          </button>
+        </div>
+
+        <!-- Scrollable Chat Stream (Preserves all history when scrolling up) -->
+        <div id="talk-chat-stream" class="talk-chat-stream">
+          <!-- Initial Welcome Message -->
+          <div class="talk-msg-bot">
+            <div class="talk-msg-bot-head">
+              <div class="talk-msg-bot-agent">
+                <div class="talk-msg-bot-avatar">N</div>
+                <div>
+                  <div class="talk-msg-bot-name">NeoStats Portfolio Analyst</div>
+                  <div style="font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--green-dark);">Connected to Home Credit Portfolio DB (307k records)</div>
+                </div>
+              </div>
+              <span class="talk-msg-bot-tag">SYSTEM READY</span>
+            </div>
+            <div style="font-size: 13.5px; line-height: 1.6; color: var(--navy);">
+              Hello! I am your AI credit portfolio analyst. You can ask any question about applicant demographics, default rates, loan types, or external credit bureau scores in plain English. I will translate your question into SQL, query the live database, and summarize the key findings.
+            </div>
+            <div style="margin-top: 12px; font-size: 12px; color: var(--ink-dim);">
+              Click any of the suggested prompts below to explore, or type your own question in the input bar.
+            </div>
+          </div>
+        </div>
+
+        <!-- Suggested Questions Bar (Placed directly above the prompt input!) -->
+        <div class="talk-suggestions-bar">
+          <span class="talk-suggestions-label">SUGGESTED:</span>
+          <div class="talk-suggestions-list" id="talk-suggestions-chips">
+            <button type="button" class="talk-chip" onclick="submitTalkQuestion('What is the default rate by income type?')">Default rate by income</button>
+            <button type="button" class="talk-chip" onclick="submitTalkQuestion('Which occupations are riskiest?')">Which occupations are riskiest?</button>
+            <button type="button" class="talk-chip" onclick="submitTalkQuestion('Show applicants with external score below 0.3')">External score &lt; 0.3</button>
+            <button type="button" class="talk-chip" onclick="submitTalkQuestion('How does high credit leverage affect default risk?')">Credit leverage impact</button>
+            <button type="button" class="talk-chip" onclick="submitTalkQuestion('What is the distribution of credit versus annuity amounts across contract types?')">Credit vs annuity by contract</button>
+          </div>
+        </div>
+
+        <!-- Chat Prompt Input Area -->
+        <form id="talk-chat-form" class="talk-input-container">
+          <input type="text" id="talk-chat-input" class="talk-input-field" placeholder="Ask a question about the portfolio (e.g. Which occupations are riskiest?)..." autocomplete="off" required>
+          <button type="submit" id="talk-chat-send-btn" class="talk-send-btn">
+            <span>Ask Analyst</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </button>
+        </form>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ==========================================================================
+     3. FLOATING AI ASSISTANT ("AGENT NEO")
+     ========================================================================== -->
+<div id="floating-chat-trigger" title="Chat with Agent Neo">
+  <div class="chat-trigger-bubble" id="chat-trigger-bubble">
+    <span>Chat with Agent Neo</span>
+    <span style="cursor: pointer; opacity: 0.6;" onclick="event.stopPropagation(); document.getElementById('chat-trigger-bubble').style.display='none';">&times;</span>
+  </div>
+  <div class="chat-trigger-btn">
+    <img src="/assets/agent-neo.svg" alt="Agent Neo">
+    <span class="chat-trigger-online-dot"></span>
+  </div>
+</div>
+
+<div id="floating-chat-modal" class="closed">
+  <div class="floating-chat-header">
+    <div class="floating-chat-agent">
+      <img src="/assets/agent-neo.svg" alt="Agent Neo">
+      <div>
+        <div class="name">Agent Neo</div>
+        <div class="status">Online · Credit Risk Analyst</div>
+      </div>
+    </div>
+    <div class="floating-chat-actions">
+      <button type="button" class="chat-ctrl-btn" id="f-chat-clear-btn" title="Clear conversation history" aria-label="Clear chat">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+      </button>
+      <button type="button" class="chat-ctrl-btn" id="f-chat-expand-btn" title="Expand to full view (Talk to Data)" aria-label="Open in Talk to Data">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+      </button>
+      <button type="button" class="chat-ctrl-btn" id="f-chat-close-btn" title="Close chat" aria-label="Close chat">&times;</button>
+    </div>
+  </div>
+  <div class="floating-chat-body" id="f-chat-body">
+    <div class="f-msg bot">
+      <div class="bubble">
+        Hello! I am <b>Agent Neo</b>, your AI Credit Risk Data Analyst. Ask me anything about portfolio default rates across cohorts, bureau debt volumes, or applicant demographics.
+      </div>
+      <div class="f-msg-time">Just now</div>
+    </div>
+  </div>
+  <div class="floating-chat-footer">
+    <form class="f-input-row" id="f-chat-form">
+      <input type="text" id="f-chat-input" placeholder="Ask about portfolio risk, defaults, loans..." required autocomplete="off">
+      <button type="submit" id="f-chat-send" class="f-send-btn">Send</button>
+    </form>
+  </div>
+</div>
+
+<!-- Application Logic Scripts -->
+<script src="/js/api.js"></script>
+<script src="/js/charts.js"></script>
+<script src="/js/pages/overview.js"></script>
+<script src="/js/pages/eda.js"></script>
+<script src="/js/pages/risk.js"></script>
+<script src="/js/pages/rules.js"></script>
+<script src="/js/pages/chat.js"></script>
+<script src="/js/app.js"></script>
+
+<script>
+  // Seamless tab routing matching mockup
+  function switchPage(pageId) {
+    document.querySelectorAll('.nav-item').forEach(function(n) {
+      n.classList.toggle('active', n.getAttribute('data-page') === pageId);
+    });
+    document.querySelectorAll('.page').forEach(function(p) {
+      p.style.display = (p.id === 'page-' + pageId) ? 'block' : 'none';
+    });
+
+    if (pageId === 'overview') initOverviewPage();
+    if (pageId === 'eda') initEDAPage();
+    if (pageId === 'scoring') initRiskPage();
+    if (pageId === 'rules') initRulesPage('all');
+    if (pageId === 'talk') {
+      if (window.ChatStore) {
+        window.ChatStore.renderMainPage();
+        setTimeout(function() {
+          var stream = document.getElementById('talk-chat-stream');
+          if (stream) stream.scrollTop = stream.scrollHeight;
+        }, 40);
+      }
+    }
+
+    window.scrollTo(0,0);
+  }
+
+  // Sidebar navigation clicks
+  document.querySelectorAll('.nav-item').forEach(function(item) {
+    item.addEventListener('click', function(e) {
+      e.preventDefault();
+      var target = item.getAttribute('data-page');
+      switchPage(target);
+      // Update URL without reload
+      var u = new URL(window.location);
+      u.searchParams.set('page', target);
+      history.pushState({page: target}, '', u);
+    });
+  });
+
+  // Handle browser back/forward
+  window.addEventListener('popstate', function(e) {
+    if (e.state && e.state.page) switchPage(e.state.page);
+  });
+
+  // Hero page transitions
+  function showHero() {
+    document.getElementById('hero-view').classList.remove('hidden');
+  }
+  function hideHero() {
+    document.getElementById('hero-view').classList.add('hidden');
+  }
+
+  document.getElementById('btn-hero-explore').addEventListener('click', function() {
+    hideHero();
+    switchPage('overview');
+  });
+  document.getElementById('btn-hero-launch').addEventListener('click', function() {
+    hideHero();
+    switchPage('overview');
+  });
+  document.getElementById('orbit-core-btn').addEventListener('click', function() {
+    hideHero();
+    switchPage('scoring');
+  });
+  document.querySelectorAll('.orbit-node-interactive').forEach(function(node) {
+    node.addEventListener('click', function() {
+      hideHero();
+      var nav = node.getAttribute('data-nav') || 'overview';
+      switchPage(nav);
+    });
+  });
+
+  document.getElementById('btn-return-hero').addEventListener('click', function(e) {
+    e.preventDefault();
+    showHero();
+  });
+  document.getElementById('sidebar-brand-btn').addEventListener('click', function(e) {
+    e.preventDefault();
+    showHero();
+  });
+
+  // Connect Talk-to-Data main page form & buttons to unified ChatStore
+  var talkChatForm = document.getElementById('talk-chat-form');
+  if (talkChatForm) {
+    talkChatForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      var input = document.getElementById('talk-chat-input');
+      if (input && input.value.trim() && window.ChatStore) {
+        var q = input.value.trim();
+        window.ChatStore.submitQuestion(q);
+      }
+    });
+  }
+
+  var talkClearBtn = document.getElementById('talk-clear-chat-btn');
+  if (talkClearBtn) {
+    talkClearBtn.addEventListener('click', function() {
+      if (window.ChatStore) window.ChatStore.clearChat();
+    });
+  }
+
+  // Route to correct page from URL param on load
+  (function() {
+    var params = new URLSearchParams(window.location.search);
+    var pg = params.get('page');
+    // Map legacy 'chat' alias to 'talk' and 'risk' to 'scoring'
+    if (pg === 'chat') pg = 'talk';
+    if (pg === 'risk') pg = 'scoring';
+    var validPages = ['overview', 'eda', 'scoring', 'rules', 'talk'];
+    if (pg && validPages.indexOf(pg) !== -1) {
+      var heroEl = document.getElementById('hero-view');
+      if (heroEl) heroEl.classList.add('hidden');
+      switchPage(pg);
+
+      var preset = params.get('preset');
+      if (preset && typeof loadRiskPreset === 'function') {
+        setTimeout(function() {
+          var sel = document.getElementById('risk-preset-select');
+          if (sel) sel.value = preset;
+          loadRiskPreset(preset);
+          if (params.get('eval') === '1' && typeof handleRiskEvaluation === 'function') {
+            setTimeout(function() { handleRiskEvaluation(); }, 200);
+          }
+        }, 350);
+      }
+
+      var q = params.get('q');
+      if (q && window.ChatStore) {
+        setTimeout(function() {
+          window.ChatStore.submitQuestion(q);
+        }, 400);
+      }
+    }
+  })();
+</script>
+
+</body>
+</html>

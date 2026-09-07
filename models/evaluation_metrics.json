@@ -1,0 +1,28 @@
+{
+  "roc_auc": 0.7284804599952712,
+  "pr_auc": 0.23302762044035283,
+  "optimal_threshold": 0.5070950130277501,
+  "best_f1": 0.2898427539311517,
+  "confusion_matrix_optimal": [
+    [
+      9988,
+      1049
+    ],
+    [
+      622,
+      341
+    ]
+  ],
+  "confusion_matrix_standard": [
+    [
+      9953,
+      1084
+    ],
+    [
+      618,
+      345
+    ]
+  ],
+  "test_sample_count": 12000,
+  "test_default_count": 963
+}

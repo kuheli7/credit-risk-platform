@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="100%" height="100%">
+  <defs>
+    <radialGradient id="bgGlow" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#142818"/>
+      <stop offset="70%" stop-color="#09120b"/>
+      <stop offset="100%" stop-color="#050a06"/>
+    </radialGradient>
+    <linearGradient id="suitGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#18201a"/>
+      <stop offset="100%" stop-color="#0a0e0b"/>
+    </linearGradient>
+    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#5fa83d"/>
+      <stop offset="100%" stop-color="#10b981"/>
+    </linearGradient>
+    <filter id="neoGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#10b981" flood-opacity="0.4"/>
+    </filter>
+  </defs>
+
+  <!-- Circular Base -->
+  <circle cx="64" cy="64" r="62" fill="url(#bgGlow)" stroke="url(#ringGrad)" stroke-width="3" filter="url(#neoGlow)"/>
+
+  <!-- Agent Silhouette -->
+  <g id="agent">
+    <!-- Shoulders / Black Suit -->
+    <path d="M22 120 C 24 95, 38 82, 64 82 C 90 82, 104 95, 106 120 Z" fill="url(#suitGrad)"/>
+    
+    <!-- White Shirt Collar -->
+    <polygon points="64,96 53,82 75,82" fill="#ffffff"/>
+    
+    <!-- Black Tie -->
+    <polygon points="64,90 60,118 64,124 68,118" fill="#111813"/>
+    
+    <!-- Head / Face -->
+    <ellipse cx="64" cy="54" rx="22" ry="26" fill="#d4a373"/>
+    
+    <!-- Hair -->
+    <path d="M42 48 C 42 28, 86 28, 86 48 C 84 34, 44 34, 42 48 Z" fill="#1c241e"/>
+    <path d="M42 48 C 42 38, 50 32, 64 32 C 78 32, 86 38, 86 48 C 80 40, 48 40, 42 48 Z" fill="#0d140e"/>
+
+    <!-- Ears -->
+    <circle cx="41" cy="54" r="5" fill="#c59263"/>
+    <circle cx="87" cy="54" r="5" fill="#c59263"/>
+
+    <!-- Iconic Sunglasses -->
+    <!-- Left Lens -->
+    <path d="M46 50 C 46 47, 61 47, 61 50 C 61 58, 46 58, 46 50 Z" fill="#0b0e0c" stroke="#5fa83d" stroke-width="1.2"/>
+    <!-- Right Lens -->
+    <path d="M67 50 C 67 47, 82 47, 82 50 C 82 58, 67 58, 67 50 Z" fill="#0b0e0c" stroke="#5fa83d" stroke-width="1.2"/>
+    <!-- Bridge -->
+    <line x1="61" y1="50" x2="67" y2="50" stroke="#5fa83d" stroke-width="1.5"/>
+    <!-- Sunglasses Glare -->
+    <line x1="48" y1="49" x2="52" y2="49" stroke="rgba(255,255,255,0.7)" stroke-width="1.2" stroke-linecap="round"/>
+    <line x1="69" y1="49" x2="73" y2="49" stroke="rgba(255,255,255,0.7)" stroke-width="1.2" stroke-linecap="round"/>
+
+    <!-- Subtle Nose / Mouth line -->
+    <line x1="64" y1="60" x2="64" y2="63" stroke="#b07d50" stroke-width="1.2" stroke-linecap="round"/>
+    <line x1="60" y1="70" x2="68" y2="70" stroke="#96633b" stroke-width="1.5" stroke-linecap="round"/>
+  </g>
+</svg>
